@@ -12,7 +12,7 @@ Features:
 
 Technologies Used:
 *	Java 17
-*	Spring Framework
+*	Spring Boot Framework
 *	Hibernate
 *	H2 database
 *	HTML
