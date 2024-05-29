@@ -13,15 +13,18 @@
         body {
             background-color: #f8f9fa;
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
+
         h1 {
             text-align: center;
             margin-top: 50px;
             margin-bottom: 30px;
         }
+
         .btn-add-record {
             margin-bottom: 20px;
         }
@@ -40,7 +43,8 @@
 <!-- Main Content -->
 <div class="container mt-5">
     <h1>Welcome to Transport Management System</h1>
-    <p>This web application allows collaborative data entry and inline editing of tables. You can easily add, edit, and delete records in the table.</p>
+    <p>This web application allows collaborative data entry and inline editing of tables. You can easily add, edit, and
+        delete records in the table.</p>
 
     <h2>Features:</h2>
     <ul>
@@ -86,16 +90,19 @@
 </footer>
 
 <!-- jQuery -->
-<script src="/css/js/jquery/jquery-3.6.0.min.js"></script>
+<script src="/js/jquery/jquery-3.6.0.min.js"></script>
 <!-- Bootstrap JavaScript -->
-<script src="/css/js/bootstrap/4.5.2/bootstrap.min.js"></script>
+<script src="/js/bootstrap/4.5.2/bootstrap.min.js"></script>
 <!-- DataTables JS -->
-<script type="text/javascript" charset="utf8" src="/css/js/datatables.net/1.11.5/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf8" src="/js/datatables.net/1.11.5/jquery.dataTables.js"></script>
 <!-- Web Socket JS -->
-<script src="/css/js/ajax/libs/sockjs-client/1.4.0/sockjs.min.js"></script>
-<script src="/css/js/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script src="/js/ajax/libs/sockjs-client/1.4.0/sockjs.min.js"></script>
+<script src="/js/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <!-- Drag and drop JS -->
-<script src="/css/js/jquery/ui/1.12.1/jquery-ui.min.js"></script>
+<script src="/js/jquery/ui/1.12.1/jquery-ui.min.js"></script>
+<!-- Include Moment.js -->
+<script src="/js/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
 <script>
     var table, socketId = generateRandomString(15);
     const options = {
@@ -117,7 +124,9 @@
             });
             if (isReconnect) {
                 console.log('Reload table..');
-                reloadTable(null);
+                //If reconnected, then reload the page
+                location.reload(true);
+                ;
             }
         }, function (error) {
             console.error('SockJS connection error:', error);
@@ -145,7 +154,14 @@
                 {data: "transportType", defaultContent: "", className: 'transport-type-select'},
                 {data: "clientCode", defaultContent: "", className: 'text'},
                 {data: "referenceNo", defaultContent: "", className: 'text'},
-                {data: "date", defaultContent: "", className: 'date'},
+                {
+                    data: "date", defaultContent: "", className: 'date',
+                    "render": function (data, type, row) {
+                        // Assuming data is in "yyyy-mm-dd" format
+                        var formattedDate = moment(data).format('DD/MM/YYYY');
+                        return formattedDate;
+                    }
+                },
                 {data: "pickupAddress", defaultContent: "", className: 'text'},
                 {data: "dropOffAddress", defaultContent: "", className: 'text'},
                 {data: "qty", defaultContent: "", className: 'number'},
@@ -209,6 +225,8 @@
                 var dataProperty = column.dataSrc();
                 emptyData[dataProperty] = null;
             });
+            //New data at the top of the table
+            emptyData.orderNumber = 0;
             table.row.add(emptyData).draw();
         });
 
@@ -233,8 +251,6 @@
             } else if (classNames.includes("date")) {
                 // Create input field
                 input = $('<input type="date" class="form-control">').val(originalValue);
-                var today = new Date().toISOString().split('T')[0];
-                $('input[type="date"]').attr('min', today);
             } else if (classNames.includes("number")) {
                 // Create input field
                 input = $('<input type="number" class="form-control">').val(originalValue);
@@ -266,17 +282,14 @@
                     }
                 });
             } else if (classNames.includes("transport-type-select") || classNames.includes("unit-select") || classNames.includes("status-select")) {
-                var url, val;
+                var url, val = originalValue;
 
                 if (classNames.includes("transport-type-select")) {
                     url = '/api/transportTypes';
-                    if (!!originalValue) val = originalValue.transportType;
                 } else if (classNames.includes("unit-select")) {
                     url = '/api/units';
-                    if (!!originalValue) val = originalValue.unit;
                 } else if (classNames.includes("status-select")) {
                     url = '/api/statuses';
-                    if (!!originalValue) val = originalValue.status;
                 }
 
                 // Fetch workers list from API
@@ -341,22 +354,30 @@
 
                 var trElement = tdElement.closest('tr'); // Find closest <tr> parent
                 var rowData = table.row(trElement).data(); // Get row data
+                //If id is null then no async
+                var async = !!rowData.id;
 
                 // Perform AJAX request to update the data
                 $.ajax({
                     url: '/api/jobData',
+                    async: async,
                     method: 'POST',
                     dataType: 'text',
                     contentType: 'application/json',
                     data: JSON.stringify({"socketId": socketId, "job": rowData}),
                     success: function () {
                         console.log('Data updated');
+                        //If id null reload
+                        if (!async) table.ajax.reload(null, false);
                     },
                     error: function (xhr, status, error) {
                         alert(error.message);
                     }
                 });
             }
+            //Set today as minimum date
+            var today = new Date().toISOString().split('T')[0];
+            $('input[type="date"]').attr('min', today);
         });
         $('#myTable tbody').sortable({
             items: 'tr',
@@ -401,6 +422,7 @@
     });
 
     function parseJSON(str) {
+        str = str === '' ? null : str;
         try {
             return JSON.parse(str);
         } catch (e) {
