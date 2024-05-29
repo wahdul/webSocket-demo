@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transport Management System</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/css/bootstrap/4.5.2/bootstrap.min.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="/css/datatables.net/1.11.5/jquery.dataTables.css">
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 50px;
+            margin-bottom: 30px;
+        }
+        .btn-add-record {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">Transport Management System</span>
+        </div>
+    </nav>
+</header>
+
+<!-- Main Content -->
+<div class="container mt-5">
+    <h1>Welcome to Transport Management System</h1>
+    <p>This web application allows collaborative data entry and inline editing of tables. You can easily add, edit, and delete records in the table.</p>
+
+    <h2>Features:</h2>
+    <ul>
+        <li>Collaborative data entry</li>
+        <li>Inline editing of tables</li>
+        <li>Automatic reconnection to the server if the connection is lost</li>
+        <li>Automatic page refresh upon successful reconnection</li>
+    </ul>
+
+    <h2>How to Use:</h2>
+    <ol>
+        <li>Click on the "Add Record" button to add a new record.</li>
+        <li>To edit an existing record, simply click on the cell you want to edit and make changes.</li>
+        <li>Press "Enter" key to save the changes, or click outside the cell.</li>
+        <li>To delete a record, click on the "Delete" button in the corresponding row.</li>
+    </ol>
+
+    <button type="button" class="btn btn-primary btn-add-record" id="btnAdd" data-toggle="modal">Add Record</button>
+    <table id="myTable" class="table table-bordered">
+        <thead>
+        <tr>
+            <th></th>
+            <th>Transport Type</th>
+            <th>Client</th>
+            <th>Reference #</th>
+            <th>Date</th>
+            <th>Pick-up Address</th>
+            <th>Drop-off Address</th>
+            <th>QTY</th>
+            <th>Units</th>
+            <th>Worker</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+    </table>
+</div>
+
+<footer class="mt-5">
+    <div class="container text-center">
+        <p>&copy; 2024 Transport Management System</p>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/css/js/jquery/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap JavaScript -->
+<script src="/css/js/bootstrap/4.5.2/bootstrap.min.js"></script>
+<!-- DataTables JS -->
+<script type="text/javascript" charset="utf8" src="/css/js/datatables.net/1.11.5/jquery.dataTables.js"></script>
+<!-- Web Socket JS -->
+<script src="/css/js/ajax/libs/sockjs-client/1.4.0/sockjs.min.js"></script>
+<script src="/css/js/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<!-- Drag and drop JS -->
+<script src="/css/js/jquery/ui/1.12.1/jquery-ui.min.js"></script>
+<script>
+    var table, socketId = generateRandomString(15);
+    const options = {
+        reconnectInterval: 3000, // Reconnect interval in milliseconds
+        debug: true // Enable debug logging
+    };
+
+    let reconnectInterval = 2000; // Reconnect interval in milliseconds
+
+    function connect(isReconnect) {
+        var socket = new SockJS('/ws', null, options);
+        var stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/job', function (response) {
+                console.log('Received: ' + response.body);
+                reloadTable(response.body);
+            });
+            if (isReconnect) {
+                console.log('Reload table..');
+                reloadTable(null);
+            }
+        }, function (error) {
+            console.error('SockJS connection error:', error);
+            setTimeout(connect(true), reconnectInterval); // Reconnect after a delay
+        });
+    }
+
+    function reloadTable(msg) {
+        if (socketId === msg) return;
+        //Disable blur
+        $('#myTable .form-control').off('blur');
+        console.log("reload");
+        table.ajax.reload(null, false);
+    }
+
+    $(document).ready(function () {
+        connect(false);
+        table = $('#myTable').DataTable({
+            ajax: {url: '/api/jobData', dataSrc: ""},
+            paging: false,
+            aDataSort: ["orderNumber", 'asc'],
+            dom: "ft",
+            columns: [
+                {data: "orderNumber", defaultContent: 0, visible: false},
+                {data: "masterBill", defaultContent: "", className: 'text'},
+                {
+                    data: "worker",
+                    defaultContent: "",
+                    className: 'worker-select',
+                    render: function (data) {
+                        if (data !== undefined && data !== null) {
+                            return data.name;
+                        }
+                    }
+                },
+                {
+                    data: null, createdCell: function (td) {
+                        // $(td).html("<button type='button' class='btn-edit btn btn-warning mr-md-1'>Edit</button><button type='button' class='btn-delete btn btn-danger'>Delete</button>");
+                        $(td).html("<button type='button' class='btn-delete btn btn-danger'>Delete</button>");
+                    }
+                }
+            ]
+        });
+
+        $('#myTable').on('click', '.btn-delete', function () {
+            var rowData = table.row($(this).closest('tr')); // Get row data
+
+            // Populate modal form fields with row data
+            var id = rowData.data().id;
+
+            if (confirm("Are you sure want to delete this data?")) {
+                if (id === undefined) {
+                    var rowIndex = table.row($(this).closest('tr')).index();// Get the index of the clicked row
+
+                    // Remove the row from the DataTable
+                    table.row(rowIndex).remove().draw();
+                    return;
+                }
+                // Perform AJAX call to delete data from server
+                $.ajax({
+                    url: '/api/jobData',
+                    method: 'DELETE',
+                    dataType: 'text',
+                    contentType: "application/json",
+                    data: JSON.stringify({"socketId": socketId, "job": {"id": id}}),
+                    success: function () {
+                        console.log("Data has been deleted");
+                    },
+                    error: function (xhr, status, error) {
+                        alert(error.message)
+                    }
+                });
+            }
+        });
+
+        $('#btnAdd').click(function () {
+            var emptyData = {};
+            // Get the data property values of all columns to empty object
+            table.columns().every(function () {
+                var column = this;
+                var dataProperty = column.dataSrc();
+                emptyData[dataProperty] = null;
+            });
+            table.row.add(emptyData).draw();
+        });
+
+        $('#myTable').on('click', 'td', function () {
+            var tdElement = $(this);
+
+            //Prevent recreate another input
+            if (tdElement.find('*').length > 0) return;
+
+            var cell = table.cell(this);
+            var originalValue = cell.data();
+            var rowIndex = cell.index().row;
+            var columnIndex = cell.index().column;
+            var input;
+
+            //Get Class names
+            var classNames = tdElement.attr('class');
+
+            if (classNames.includes("text")) {
+                // Create input field
+                input = $('<input type="text" class="form-control">').val(originalValue);
+            } else if (classNames.includes("worker-select")) {
+                // Fetch workers list from API
+                $.ajax({
+                    url: '/api/workerData',
+                    async: false,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        // Create a select element
+                        input = $('<select class="form-control">');
+                        if (data.length === 0) return;
+                        //
+                        input.append($('<option>'));
+
+                        // Populate select element with workers
+                        data.forEach(function (worker) {
+                            input.append($('<option>', {
+                                value: JSON.stringify(worker),
+                                text: worker.name,
+                                selected: originalValue && worker.id === originalValue.id
+                            }));
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching workers:', error);
+                    }
+                });
+            } else return;
+
+            // Replace cell content with input field
+            tdElement.html(input);
+
+            // Focus on input field
+            input.focus();
+
+            var isUpdating = false;
+
+            // Attach event listener to the input element for both 'keydown' and 'blur change' events
+            input.on('keydown blur change', function (event) {
+                if (event.type === 'blur' || event.type === 'change' || event.which === 13 || event.which === 27) {
+                    if (event.which === 27) { // Escape key
+                        $(this).remove(); // Remove the input element
+                        cell.data(originalValue).draw(); // Restore original value
+                    } else if (event.which === 13 || event.type === 'blur' || event.type === 'change') { // Enter key or blur/change event
+                        updateData.call(this); // Call updateData function with 'this' context
+                    }
+                }
+            });
+
+            function updateData() {
+                //Prevent event bubbling
+                if (isUpdating) return;
+                isUpdating = true;
+
+                var newValue = parseJSON($(this).val()); // Get new value from input field
+                console.log("Save");
+
+                cell.data(newValue).draw(); // Update cell with new value
+
+                if (deepEqual(originalValue, newValue)) return; // No change, exit early
+
+                var trElement = tdElement.closest('tr'); // Find closest <tr> parent
+                var rowData = table.row(trElement).data(); // Get row data
+
+                // Perform AJAX request to update the data
+                $.ajax({
+                    url: '/api/jobData',
+                    method: 'POST',
+                    dataType: 'text',
+                    contentType: 'application/json',
+                    data: JSON.stringify({"socketId": socketId, "job": rowData}),
+                    success: function () {
+                        console.log('Data updated');
+                    },
+                    error: function (xhr, status, error) {
+                        alert(error.message);
+                    }
+                });
+            }
+        });
+        $('#myTable tbody').sortable({
+            items: 'tr',
+            cursor: 'move',
+            opacity: 0.6,
+            width: 1,
+            start: function (event, ui, a, b) {
+                //Trigger blur to save
+                $('#myTable .form-control').trigger('blur');
+                console.log(event);
+                console.log(ui);
+                console.log(ui.helper.find("tr"));
+                console.log($(ui.helper[0]).children());
+            },
+            update: function (event, ui) {
+                // Update DataTable order after drag and drop
+                var newOrder = [];
+                var newOrderAjax = [];
+                var i = 1;
+                $('#myTable tbody tr').each(function () {
+                    var rowData = table.row(this).data();
+                    rowData.orderNumber = i;
+                    newOrder.push(rowData);
+                    var id = rowData.id;
+                    newOrderAjax.push({"id": id, "orderNumber": i});
+                    i++;
+                });
+                table.clear().rows.add(newOrder).draw();
+
+                // Perform AJAX request to update the data
+                $.ajax({
+                    url: '/api/reorderJobData',
+                    method: 'POST',
+                    dataType: 'text',
+                    contentType: "application/json",
+                    data: JSON.stringify({"socketId": socketId, "jobList": newOrderAjax}),
+                    success: function () {
+                        console.log("Data reordered");
+                    },
+                    error: function (xhr, status, error) {
+                        alert(error.message)
+                    }
+                });
+            }
+        }).disableSelection();
+    });
+
+    function parseJSON(str) {
+        try {
+            return JSON.parse(str);
+        } catch (e) {
+            return str;
+        }
+    }
+
+    function deepEqual(obj1, obj2) {
+        // If both objects are null or undefined, they are equal
+        if (obj1 == obj2) return true;
+
+        // If one of the objects is null or undefined, they are not equal
+        if (typeof obj1 !== 'object' || typeof obj2 !== 'object' || obj1 === null || obj2 === null) return false;
+
+        // Get the keys of both objects
+        const keys1 = Object.keys(obj1);
+        const keys2 = Object.keys(obj2);
+
+        // If the number of keys is different, the objects are not equal
+        if (keys1.length !== keys2.length) return false;
+
+        // Compare the values of each property recursively
+        for (let key of keys1) {
+            if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function generateRandomString(length) {
+        var result = '';
+        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+        for (var i = 0; i < length; i++) {
+            var randomIndex = Math.floor(Math.random() * characters.length);
+            result += characters.charAt(randomIndex);
+        }
+
+        return result;
+    }
+</script>
+</body>
+</html>
