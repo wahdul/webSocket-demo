@@ -30,7 +30,7 @@ Setup:
 ```shell
 mvn spring-boot:run
 ```
-6.	Access the application in your web browser using the provided URL (usually http://localhost:8080).
+6.	Access the application http://localhost:8080/jobs in your web browser.
 
 How to Use:
 1.	Click on the "Add Record" button to add a new record.
