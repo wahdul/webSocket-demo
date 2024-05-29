@@ -1,7 +1,7 @@
 # webSocket-demo
 Web socket demo for collaborative data entry
 
-Transport Management System
+**Transport Management System**<br>
 This web application serves as a Transport Management System, allowing collaborative data entry and inline editing of tables. It enables users to easily add, edit, and delete records in the table.
 
 Features:
