@@ -126,7 +126,6 @@
                 console.log('Reload table..');
                 //If reconnected, then reload the page
                 location.reload(true);
-                ;
             }
         }, function (error) {
             console.error('SockJS connection error:', error);
@@ -157,9 +156,9 @@
                 {
                     data: "date", defaultContent: "", className: 'date',
                     "render": function (data, type, row) {
+                        if (!data) return null;
                         // Assuming data is in "yyyy-mm-dd" format
-                        var formattedDate = moment(data).format('DD/MM/YYYY');
-                        return formattedDate;
+                        return moment(data).format('DD/MM/YYYY');
                     }
                 },
                 {data: "pickupAddress", defaultContent: "", className: 'text'},
@@ -375,6 +374,7 @@
                     }
                 });
             }
+
             //Set today as minimum date
             var today = new Date().toISOString().split('T')[0];
             $('input[type="date"]').attr('min', today);
