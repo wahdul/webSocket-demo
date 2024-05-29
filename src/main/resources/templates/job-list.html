@@ -142,7 +142,14 @@
             dom: "ft",
             columns: [
                 {data: "orderNumber", defaultContent: 0, visible: false},
-                {data: "masterBill", defaultContent: "", className: 'text'},
+                {data: "transportType", defaultContent: "", className: 'transport-type-select'},
+                {data: "clientCode", defaultContent: "", className: 'text'},
+                {data: "referenceNo", defaultContent: "", className: 'text'},
+                {data: "date", defaultContent: "", className: 'date'},
+                {data: "pickupAddress", defaultContent: "", className: 'text'},
+                {data: "dropOffAddress", defaultContent: "", className: 'text'},
+                {data: "qty", defaultContent: "", className: 'number'},
+                {data: "unit", defaultContent: "", className: 'unit-select'},
                 {
                     data: "worker",
                     defaultContent: "",
@@ -153,6 +160,7 @@
                         }
                     }
                 },
+                {data: "status", defaultContent: "", className: 'status-select'},
                 {
                     data: null, createdCell: function (td) {
                         // $(td).html("<button type='button' class='btn-edit btn btn-warning mr-md-1'>Edit</button><button type='button' class='btn-delete btn btn-danger'>Delete</button>");
@@ -222,6 +230,14 @@
             if (classNames.includes("text")) {
                 // Create input field
                 input = $('<input type="text" class="form-control">').val(originalValue);
+            } else if (classNames.includes("date")) {
+                // Create input field
+                input = $('<input type="date" class="form-control">').val(originalValue);
+                var today = new Date().toISOString().split('T')[0];
+                $('input[type="date"]').attr('min', today);
+            } else if (classNames.includes("number")) {
+                // Create input field
+                input = $('<input type="number" class="form-control">').val(originalValue);
             } else if (classNames.includes("worker-select")) {
                 // Fetch workers list from API
                 $.ajax({
@@ -242,6 +258,46 @@
                                 value: JSON.stringify(worker),
                                 text: worker.name,
                                 selected: originalValue && worker.id === originalValue.id
+                            }));
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching workers:', error);
+                    }
+                });
+            } else if (classNames.includes("transport-type-select") || classNames.includes("unit-select") || classNames.includes("status-select")) {
+                var url, val;
+
+                if (classNames.includes("transport-type-select")) {
+                    url = '/api/transportTypes';
+                    if (!!originalValue) val = originalValue.transportType;
+                } else if (classNames.includes("unit-select")) {
+                    url = '/api/units';
+                    if (!!originalValue) val = originalValue.unit;
+                } else if (classNames.includes("status-select")) {
+                    url = '/api/statuses';
+                    if (!!originalValue) val = originalValue.status;
+                }
+
+                // Fetch workers list from API
+                $.ajax({
+                    url: url,
+                    async: false,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        // Create a select element
+                        input = $('<select class="form-control">');
+                        if (data.length === 0) return;
+                        //
+                        input.append($('<option>'));
+
+                        // Populate select element with workers
+                        data.forEach(function (_enum) {
+                            input.append($('<option>', {
+                                value: _enum,
+                                text: _enum,
+                                selected: originalValue && _enum === val
                             }));
                         });
                     },
@@ -307,13 +363,9 @@
             cursor: 'move',
             opacity: 0.6,
             width: 1,
-            start: function (event, ui, a, b) {
+            start: function (event, ui) {
                 //Trigger blur to save
                 $('#myTable .form-control').trigger('blur');
-                console.log(event);
-                console.log(ui);
-                console.log(ui.helper.find("tr"));
-                console.log($(ui.helper[0]).children());
             },
             update: function (event, ui) {
                 // Update DataTable order after drag and drop

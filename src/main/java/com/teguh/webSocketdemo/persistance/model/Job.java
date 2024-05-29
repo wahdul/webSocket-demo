@@ -1,6 +1,11 @@
 package com.teguh.webSocketdemo.persistance.model;
 
+import com.teguh.webSocketdemo.util.Status;
+import com.teguh.webSocketdemo.util.TransportType;
+import com.teguh.webSocketdemo.util.Unit;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,15 +19,18 @@ public class Job {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private String transportType;
+    @Enumerated(EnumType.STRING)
+    private TransportType transportType;
     private String clientCode;
     private String referenceNo;
     private String date;
     private String pickupAddress;
     private String dropOffAddress;
     private String qty;
-    private String units;
-    private String Status;
+    @Enumerated(EnumType.STRING)
+    private Unit unit;
+    @Enumerated(EnumType.STRING)
+    private Status status;
     private Integer orderNumber;
     private Date deleted;
 
@@ -37,11 +45,11 @@ public class Job {
         this.id = id;
     }
 
-    public String getTransportType() {
+    public TransportType getTransportType() {
         return transportType;
     }
 
-    public void setTransportType(String transportType) {
+    public void setTransportType(TransportType transportType) {
         this.transportType = transportType;
     }
 
@@ -93,20 +101,20 @@ public class Job {
         this.qty = qty;
     }
 
-    public String getUnits() {
-        return units;
+    public Unit getUnit() {
+        return unit;
     }
 
-    public void setUnits(String units) {
-        this.units = units;
+    public void setUnit(Unit unit) {
+        this.unit = unit;
     }
 
-    public String getStatus() {
-        return Status;
+    public Status getStatus() {
+        return status;
     }
 
-    public void setStatus(String status) {
-        Status = status;
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     public Integer getOrderNumber() {

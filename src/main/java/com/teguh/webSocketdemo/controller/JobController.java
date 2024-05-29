@@ -9,6 +9,9 @@ import com.teguh.webSocketdemo.persistance.model.Worker;
 import com.teguh.webSocketdemo.service.JobService;
 import com.teguh.webSocketdemo.service.WebSocketService;
 import com.teguh.webSocketdemo.service.WorkerService;
+import com.teguh.webSocketdemo.util.Status;
+import com.teguh.webSocketdemo.util.TransportType;
+import com.teguh.webSocketdemo.util.Unit;
 import com.teguh.webSocketdemo.util.dto.JobRequestDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -77,5 +80,23 @@ public class JobController {
     public void reorderJobData(@RequestBody JobRequestDTO requestDTO) {
         jobService.reorderJobData(requestDTO.getJobList());
         webSocketService.sendMessage("/topic/job", requestDTO.getSocketId());
+    }
+
+    @GetMapping("/api/transportTypes")
+    @ResponseBody
+    public TransportType[] getTransportTypes() {
+        return TransportType.values(); // Return all enum values as an array
+    }
+
+    @GetMapping("/api/units")
+    @ResponseBody
+    public Unit[] getUnits() {
+        return Unit.values(); // Return all enum values as an array
+    }
+
+    @GetMapping("/api/statuses")
+    @ResponseBody
+    public Status[] getStatuses() {
+        return Status.values(); // Return all enum values as an array
     }
 }
