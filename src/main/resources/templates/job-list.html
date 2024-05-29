@@ -15,7 +15,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1800px;
             margin: 0 auto;
         }
 
@@ -29,6 +29,7 @@
             margin-bottom: 20px;
         }
     </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyApg-WC0f4YH1B3m1BG4HEPwlke287Hl6s&libraries=places"></script>
 </head>
 <body>
 
@@ -71,10 +72,10 @@
             <th>Client</th>
             <th>Reference #</th>
             <th>Date</th>
-            <th>Pick-up Address</th>
-            <th>Drop-off Address</th>
-            <th>QTY</th>
-            <th>Units</th>
+            <th style="width:25%">Pick-up Address</th>
+            <th style="width:25%">Drop-off Address</th>
+            <th style="width:7%;align-content: center">QTY</th>
+            <th style="width:7%">Units</th>
             <th>Worker</th>
             <th>Status</th>
             <th>Action</th>
@@ -162,8 +163,8 @@
                         return moment(data).format('DD/MM/YYYY');
                     }
                 },
-                {data: "pickupAddress", defaultContent: "", className: 'text'},
-                {data: "dropOffAddress", defaultContent: "", className: 'text'},
+                {data: "pickupAddress", defaultContent: "", className: 'address'},
+                {data: "dropOffAddress", defaultContent: "", className: 'address'},
                 {data: "qty", defaultContent: "", className: 'number'},
                 {data: "unit", defaultContent: "", className: 'unit-select'},
                 {
@@ -193,11 +194,11 @@
             var id = rowData.data().id;
 
             if (confirm("Are you sure want to delete this data?")) {
-                if (id === undefined) {
-                    var rowIndex = table.row($(this).closest('tr')).index();// Get the index of the clicked row
+                var rowIndex = table.row($(this).closest('tr')).index();// Get the index of the clicked row
 
-                    // Remove the row from the DataTable
-                    table.row(rowIndex).remove().draw();
+                // Remove the row from the DataTable
+                table.row(rowIndex).remove().draw();
+                if (id === undefined) {
                     return;
                 }
                 // Perform AJAX call to delete data from server
@@ -254,6 +255,9 @@
             } else if (classNames.includes("number")) {
                 // Create input field
                 input = $('<input type="number" class="form-control">').val(originalValue);
+            } else if (classNames.includes("address")) {
+                // Create input field
+                input = $('<input type="text" class="form-control" id="autocomplete">').val(originalValue);
             } else if (classNames.includes("worker-select")) {
                 // Fetch workers list from API
                 $.ajax({
@@ -376,9 +380,18 @@
                 });
             }
 
-            //Set today as minimum date
-            var today = new Date().toISOString().split('T')[0];
-            $('input[type="date"]').attr('min', today);
+            if (classNames.includes("date")) {
+                //Set today as minimum date
+                var today = new Date().toISOString().split('T')[0];
+                $('input[type="date"]').attr('min', today);
+            } else if (classNames.includes("address")) {
+                var _input = document.getElementById('autocomplete');
+                var options = {
+                    types: ['geocode'],
+                    componentRestrictions: {country: 'au'} // Restrict autocomplete to Australia
+                };
+                new google.maps.places.Autocomplete(_input, options);
+            }
         });
         $('#myTable tbody').sortable({
             items: 'tr',
