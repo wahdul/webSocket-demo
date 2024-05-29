@@ -231,6 +231,15 @@
             table.row.add(emptyData).draw();
         });
 
+        $(document).on('keydown', '#myTable td', function (e) {
+            var keyCode = e.keyCode || e.which;
+
+            if (keyCode >= 37 && keyCode <= 40) { // Arrow keys
+                e.preventDefault();
+                moveCell(this, keyCode);
+            }
+        });
+
         $('#myTable').on('click', 'td', function () {
             var tdElement = $(this);
 
@@ -334,11 +343,11 @@
 
             // Attach event listener to the input element for both 'keydown' and 'blur change' events
             input.on('keydown blur change', function (event) {
-                if (event.type === 'blur' || event.type === 'change' || event.which === 13 || event.which === 27) {
+                if (event.type === 'blur' || event.which === 27) {
                     if (event.which === 27) { // Escape key
                         $(this).remove(); // Remove the input element
                         cell.data(originalValue).draw(); // Restore original value
-                    } else if (event.which === 13 || event.type === 'blur' || event.type === 'change') { // Enter key or blur/change event
+                    } else if (event.type === 'blur') { // Enter key or blur/change event
                         updateData.call(this); // Call updateData function with 'this' context
                     }
                 }
@@ -478,6 +487,41 @@
         }
 
         return result;
+    }
+
+    function moveCell(currentCell, keyCode) {
+        var cell = table.cell(currentCell);
+        var nextCell;
+
+        switch (keyCode) {
+            case 37: // Left arrow
+                nextCell = $(cell.node().previousElementSibling);
+                break;
+            case 38: // Up arrow
+                var prevRow = cell.node().parentNode.previousSibling;
+                if (prevRow) {
+                    var index = $(currentCell).index();
+                    nextCell = $(prevRow).find('td:eq(' + index + ')');
+                }
+                break;
+            case 39: // Right arrow
+                nextCell = $(cell.node().nextElementSibling);
+                break;
+            case 40: // Down arrow
+                var nextRow = cell.node().parentNode.nextSibling;
+                if (nextRow) {
+                    var index = $(currentCell).index();
+                    nextCell = $(nextRow).find('td:eq(' + index + ')');
+                }
+                break;
+        }
+
+        if (nextCell && nextCell.length > 0) {
+            nextCell.click(); // Trigger click event on the next cell
+
+            // Handle focus for accessibility
+            nextCell.focus();
+        }
     }
 </script>
 </body>

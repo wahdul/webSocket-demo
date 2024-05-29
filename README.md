@@ -9,6 +9,7 @@ Features:
 * Inline editing of tables
 * Automatic reconnection to the server if the connection is lost
 * Automatic page refresh upon successful reconnection
+* Keyboard navigation for DataTables
 
 Technologies Used:
 *	Java 17
@@ -21,6 +22,7 @@ Technologies Used:
 *	DataTables JS
 *	Web Socket JS (SockJS and Stomp.js)
 *	Drag and drop JS (jQuery UI)
+*	Google Maps API autocomplete widgets
 
 Setup:
 1.	Clone the repository to your local machine.
@@ -35,8 +37,9 @@ mvn spring-boot:run
 How to Use:
 1.	Click on the "Add Record" button to add a new record.
 2.	To edit an existing record, simply click on the cell you want to edit and make changes.
-3.	Press the "Enter" key to save the changes, or click outside the cell.
-4.	To delete a record, click on the "Delete" button in the corresponding row.
+3.	Focus on any cell within the table, then use the arrow keys to navigate vertically or horizontally through table cells.
+4.	Navigate away from the cell or click outside it to save changes. Alternatively, press the 'Esc' key to discard changes.
+5.	To delete a record, click on the "Delete" button in the corresponding row.
 
 Contributors:
 1.	Teguh Adi Sumantri
