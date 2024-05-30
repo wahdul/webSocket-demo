@@ -10,6 +10,7 @@ Features:
 * Automatic reconnection to the server if the connection is lost
 * Automatic page refresh upon successful reconnection
 * Keyboard navigation for DataTables
+* Google Maps API address autocomplete
 
 Technologies Used:
 *	Java 17
