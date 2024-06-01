@@ -10,10 +10,13 @@ public enum TransportType {
     INTERSTATE_DELIVERY("Interstate delivery"),
     LOCAL_DELIVERY("Local delivery"),
     OTHER("Other");
-    final String name;
+    final String label;
 
-    TransportType(String name) {
-        this.name = name;
+    TransportType(String label) {
+        this.label = label;
     }
 
+    public String getLabel() {
+        return label;
+    }
 }

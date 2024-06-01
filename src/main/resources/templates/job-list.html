@@ -111,7 +111,7 @@
 <!-- Include Moment.js -->
 <script src="/js/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 
-<script>
+<script th:inline="javascript">
     var table, socketId = generateRandomString(15);
     const options = {
         reconnectInterval: 3000, // Reconnect interval in milliseconds
@@ -119,6 +119,20 @@
     };
 
     let reconnectInterval = 2000; // Reconnect interval in milliseconds
+
+    var transportTypeMap = new Map();
+    /*[# th:each="entry : ${transportTypeMap.entrySet()}"]*/
+    transportTypeMap.set("[(${entry.key})]", "[(${entry.value})]");
+    /*[/]*/
+    var unitMap = new Map();
+    /*[# th:each="entry : ${unitMap.entrySet()}"]*/
+    unitMap.set("[(${entry.key})]", "[(${entry.value})]");
+    /*[/]*/
+    var statusMap = new Map();
+    /*[# th:each="entry : ${statusMap.entrySet()}"]*/
+    statusMap.set("[(${entry.key})]", "[(${entry.value})]");
+
+    /*[/]*/
 
     function connect(isReconnect) {
         var socket = new SockJS('/ws', null, options);
@@ -159,12 +173,19 @@
             autoWidth: true, // Set auto width
             columns: [
                 {data: "orderNumber", defaultContent: 0, visible: false},
-                {data: "transportType", defaultContent: "", className: 'transport-type-select'},
+                {
+                    data: "transportType", defaultContent: "", className: 'transport-type-select',
+                    render: function (data) {
+                        if (data !== undefined && data !== null) {
+                            return transportTypeMap.get(data);
+                        }
+                    }
+                },
                 {data: "clientCode", defaultContent: "", className: 'text'},
                 {data: "referenceNo", defaultContent: "", className: 'text'},
                 {
                     data: "date", defaultContent: "", className: 'date',
-                    "render": function (data, type, row) {
+                    render: function (data) {
                         if (!data) return null;
                         // Assuming data is in "yyyy-mm-dd" format
                         return moment(data).format('DD/MM/YYYY');
@@ -173,7 +194,14 @@
                 {data: "pickupAddress", defaultContent: "", className: 'address'},
                 {data: "dropOffAddress", defaultContent: "", className: 'address'},
                 {data: "qty", defaultContent: "", className: 'number'},
-                {data: "unit", defaultContent: "", className: 'unit-select'},
+                {
+                    data: "unit", defaultContent: "", className: 'unit-select',
+                    render: function (data) {
+                        if (data !== undefined && data !== null) {
+                            return unitMap.get(data);
+                        }
+                    }
+                },
                 {
                     data: "worker",
                     defaultContent: "",
@@ -184,7 +212,14 @@
                         }
                     }
                 },
-                {data: "status", defaultContent: "", className: 'status-select'},
+                {
+                    data: "status", defaultContent: "", className: 'status-select',
+                    render: function (data) {
+                        if (data !== undefined && data !== null) {
+                            return statusMap.get(data);
+                        }
+                    }
+                },
                 {
                     data: null, createdCell: function (td) {
                         // $(td).html("<button type='button' class='btn-edit btn btn-warning mr-md-1'>Edit</button><button type='button' class='btn-delete btn btn-danger'>Delete</button>");
@@ -302,7 +337,7 @@
                     }
                 });
             } else if (classNames.includes("transport-type-select") || classNames.includes("unit-select") || classNames.includes("status-select")) {
-                var url, val = originalValue;
+                var url;
 
                 if (classNames.includes("transport-type-select")) {
                     url = '/api/transportTypes';
@@ -328,9 +363,9 @@
                         // Populate select element with workers
                         data.forEach(function (_enum) {
                             input.append($('<option>', {
-                                value: _enum,
-                                text: _enum,
-                                selected: originalValue && _enum === val
+                                value: _enum.val,
+                                text: _enum.text,
+                                selected: originalValue && _enum.val === originalValue
                             }));
                         });
                     },

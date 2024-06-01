@@ -6,9 +6,13 @@ public enum Unit {
     PMC("PMC"),
     AKE("AKE");
 
-    String name;
+    final String label;
 
-    Unit(String name) {
-        this.name = name;
+    Unit(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return label;
     }
 }

@@ -1,8 +1,5 @@
 package com.teguh.webSocketdemo.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.teguh.webSocketdemo.persistance.model.Job;
 import com.teguh.webSocketdemo.persistance.model.Worker;
@@ -12,19 +9,21 @@ import com.teguh.webSocketdemo.service.WorkerService;
 import com.teguh.webSocketdemo.util.Status;
 import com.teguh.webSocketdemo.util.TransportType;
 import com.teguh.webSocketdemo.util.Unit;
+import com.teguh.webSocketdemo.util.dto.EnumDTO;
 import com.teguh.webSocketdemo.util.dto.JobRequestDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 public class JobController {
@@ -39,7 +38,10 @@ public class JobController {
     private WebSocketService webSocketService;
 
     @GetMapping("/jobs")
-    public String jobList() {
+    public String jobList(Model model) {
+        model.addAttribute("transportTypeMap", Arrays.stream(TransportType.values()).collect(Collectors.toMap(TransportType::name, TransportType::getLabel)));
+        model.addAttribute("unitMap", Arrays.stream(Unit.values()).collect(Collectors.toMap(Unit::name, Unit::getLabel)));
+        model.addAttribute("statusMap", Arrays.stream(Status.values()).collect(Collectors.toMap(Status::name, Status::getLabel)));
         return "job-list";
     }
 
@@ -84,19 +86,19 @@ public class JobController {
 
     @GetMapping("/api/transportTypes")
     @ResponseBody
-    public TransportType[] getTransportTypes() {
-        return TransportType.values(); // Return all enum values as an array
+    public List<EnumDTO> getTransportTypes() {
+        return Arrays.stream(TransportType.values()).map(x -> new EnumDTO(x.name(), x.getLabel())).collect(Collectors.toList()); // Return all enum values as a List
     }
 
     @GetMapping("/api/units")
     @ResponseBody
-    public Unit[] getUnits() {
-        return Unit.values(); // Return all enum values as an array
+    public List<EnumDTO> getUnits() {
+        return Arrays.stream(Unit.values()).map(x -> new EnumDTO(x.name(), x.getLabel())).collect(Collectors.toList()); // Return all enum values as a List
     }
 
     @GetMapping("/api/statuses")
     @ResponseBody
-    public Status[] getStatuses() {
-        return Status.values(); // Return all enum values as an array
+    public List<EnumDTO> getStatuses() {
+        return Arrays.stream(Status.values()).map(x -> new EnumDTO(x.name(), x.getLabel())).collect(Collectors.toList()); // Return all enum values as a List
     }
 }

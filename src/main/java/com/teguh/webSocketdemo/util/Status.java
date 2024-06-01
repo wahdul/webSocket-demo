@@ -8,9 +8,13 @@ public enum Status {
     DELIVERED("Delivered"),
     COMPLETE("Complete");
 
-    String name;
+    final String label;
 
-    Status(String name) {
-        this.name = name;
+    Status(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return label;
     }
 }
