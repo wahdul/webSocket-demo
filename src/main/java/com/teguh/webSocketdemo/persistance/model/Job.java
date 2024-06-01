@@ -19,7 +19,6 @@ public class Job {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @Enumerated(EnumType.STRING)
     private TransportType transportType;
     private String clientCode;
     private String referenceNo;
@@ -27,9 +26,7 @@ public class Job {
     private String pickupAddress;
     private String dropOffAddress;
     private String qty;
-    @Enumerated(EnumType.STRING)
     private Unit unit;
-    @Enumerated(EnumType.STRING)
     private Status status;
     private Integer orderNumber;
     private Date deleted;
