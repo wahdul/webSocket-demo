@@ -47,18 +47,14 @@ public class JobController {
 
     @GetMapping("/api/jobData")
     @ResponseBody
-    public String getAllJob() {
-        List<Job> jobList = jobService.getAllJob();
-        Gson gson = new Gson();
-        return gson.toJson(jobList);
+    public List<Job> getAllJob() {
+        return jobService.getAllJob();
     }
 
     @GetMapping("/api/workerData")
     @ResponseBody
-    public String getAllWorker() {
-        List<Worker> workerList = workerService.getAllWorker();
-        Gson gson = new Gson();
-        return gson.toJson(workerList);
+    public List<Worker> getAllWorker() {
+        return workerService.getAllWorker();
     }
 
     @PostMapping("/api/jobData")
@@ -72,7 +68,6 @@ public class JobController {
     @ResponseBody
     public void deleteJob(@RequestBody JobRequestDTO requestDTO) {
         Job job = requestDTO.getJob();
-        job.setDeleted(new Date());//Soft Delete
         jobService.saveJob(job);
         webSocketService.sendMessage("/topic/job", requestDTO.getSocketId());
     }
