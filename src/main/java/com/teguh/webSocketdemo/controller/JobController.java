@@ -1,6 +1,5 @@
 package com.teguh.webSocketdemo.controller;
 
-import com.google.gson.Gson;
 import com.teguh.webSocketdemo.persistance.model.Job;
 import com.teguh.webSocketdemo.persistance.model.Worker;
 import com.teguh.webSocketdemo.service.JobService;
@@ -68,6 +67,7 @@ public class JobController {
     @ResponseBody
     public void deleteJob(@RequestBody JobRequestDTO requestDTO) {
         Job job = requestDTO.getJob();
+        job.setDeleted(new Date());//Soft Delete
         jobService.saveJob(job);
         webSocketService.sendMessage("/topic/job", requestDTO.getSocketId());
     }

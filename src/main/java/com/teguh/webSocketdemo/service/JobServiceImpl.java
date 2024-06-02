@@ -22,7 +22,6 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public void saveJob(Job job) {
-        job.setDeleted(new Date());//Soft Delete
         jobRepository.save(job);
     }
 
