@@ -75,6 +75,7 @@
         <thead>
         <tr>
             <th></th>
+            <th></th>
             <th>Transport Type</th>
             <th>Client</th>
             <th>Reference #</th>
@@ -172,6 +173,7 @@
             dom: "ft",
             autoWidth: true, // Set auto width
             columns: [
+                {data: "id", defaultContent: 0, visible: false},
                 {data: "orderNumber", defaultContent: 0, visible: false},
                 {
                     data: "transportType", defaultContent: "", className: 'transport-type-select',
@@ -271,6 +273,7 @@
             //New data at the top of the table
             emptyData.orderNumber = 0;
             table.row.add(emptyData).draw();
+            $('#myTable tbody tr:first td:first').trigger('click');
         });
 
         $(document).on('keydown', '#myTable td', function (e) {
@@ -291,6 +294,8 @@
             var cell = table.cell(this);
             var originalValue = cell.data();
             var rowIndex = cell.index().row;
+            // Get the corresponding id cell in the same row
+            var idCell = table.cell(rowIndex, 0);
             var columnIndex = cell.index().column;
             var input;
 
@@ -406,8 +411,10 @@
                         console.log('Data updated');
                         //If id null, get from response
                         if (!!!rowData.id) {
-                            rowData.id = data.id;
-                            table.row(trElement).data(rowData);
+                            //Update id in table
+                            idCell.data(data.id);
+                            idCell.invalidate();
+                            console.log(table.row(trElement).data());
                         }
                     },
                     error: function (xhr, status, error) {
