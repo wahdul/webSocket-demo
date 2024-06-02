@@ -168,10 +168,11 @@
         table = $('#myTable').DataTable({
             ajax: {url: '/api/jobData', dataSrc: ""},
             paging: false,
+            order: [ [0, 'asc'] ],
             dom: "ft",
             autoWidth: true, // Set auto width
             columns: [
-                {data: "id", defaultContent: 0, visible: false},
+                {data: "orderNumber", defaultContent: 0, visible: false},
                 {
                     data: "transportType", defaultContent: "", className: 'transport-type-select',
                     render: function (data) {
@@ -220,7 +221,7 @@
                     }
                 },
                 {
-                    data: "orderNumber", createdCell: function (td) {
+                    data: "id", createdCell: function (td) {
                         // $(td).html("<button type='button' class='btn-edit btn btn-warning mr-md-1'>Edit</button><button type='button' class='btn-delete btn btn-danger'>Delete</button>");
                         $(td).html("<button type='button' class='btn-delete btn btn-danger'>Delete</button>");
                     }
@@ -229,9 +230,6 @@
         });
         // Get the number of columns
         var numColumns = table.columns().count();
-
-        // Set the order by the last column
-        table.order([(@{[[numColumns - 1, 'asc']]})]).draw();
 
         $('#myTable').on('click', '.btn-delete', function () {
             var rowData = table.row($(this).closest('tr')); // Get row data
@@ -298,7 +296,7 @@
             var originalValue = cell.data();
             var rowIndex = cell.index().row;
             // Get the corresponding id cell in the same row
-            var idCell = table.cell(rowIndex, 0);
+            var idCell = table.cell(rowIndex, numColumns - 1);
             var columnIndex = cell.index().column;
             var input;
 
