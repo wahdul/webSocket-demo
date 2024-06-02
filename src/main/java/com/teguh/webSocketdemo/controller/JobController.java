@@ -58,9 +58,11 @@ public class JobController {
 
     @PostMapping("/api/jobData")
     @ResponseBody
-    public void saveJob(@RequestBody JobRequestDTO requestDTO) {
-        jobService.saveJob(requestDTO.getJob());
+    public Job saveJob(@RequestBody JobRequestDTO requestDTO) {
+        Job job = requestDTO.getJob();
+        jobService.saveJob(job);
         webSocketService.sendMessage("/topic/job", requestDTO.getSocketId());
+        return job;
     }
 
     @DeleteMapping("/api/jobData")
@@ -77,23 +79,5 @@ public class JobController {
     public void reorderJobData(@RequestBody JobRequestDTO requestDTO) {
         jobService.reorderJobData(requestDTO.getJobList());
         webSocketService.sendMessage("/topic/job", requestDTO.getSocketId());
-    }
-
-    @GetMapping("/api/transportTypes")
-    @ResponseBody
-    public List<EnumDTO> getTransportTypes() {
-        return Arrays.stream(TransportType.values()).map(x -> new EnumDTO(x.name(), x.getLabel())).collect(Collectors.toList()); // Return all enum values as a List
-    }
-
-    @GetMapping("/api/units")
-    @ResponseBody
-    public List<EnumDTO> getUnits() {
-        return Arrays.stream(Unit.values()).map(x -> new EnumDTO(x.name(), x.getLabel())).collect(Collectors.toList()); // Return all enum values as a List
-    }
-
-    @GetMapping("/api/statuses")
-    @ResponseBody
-    public List<EnumDTO> getStatuses() {
-        return Arrays.stream(Status.values()).map(x -> new EnumDTO(x.name(), x.getLabel())).collect(Collectors.toList()); // Return all enum values as a List
     }
 }

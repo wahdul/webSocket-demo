@@ -337,42 +337,27 @@
                     }
                 });
             } else if (classNames.includes("transport-type-select") || classNames.includes("unit-select") || classNames.includes("status-select")) {
-                var url;
+                var data;
 
                 if (classNames.includes("transport-type-select")) {
-                    url = '/api/transportTypes';
+                    data = transportTypeMap;
                 } else if (classNames.includes("unit-select")) {
-                    url = '/api/units';
+                    data = unitMap;
                 } else if (classNames.includes("status-select")) {
-                    url = '/api/statuses';
+                    data = statusMap;
                 }
 
-                // Fetch workers list from API
-                $.ajax({
-                    url: url,
-                    async: false,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function (data) {
-                        // Create a select element
-                        input = $('<select class="form-control">');
-                        if (data.length === 0) return;
-                        //
-                        input.append($('<option>'));
-
-                        // Populate select element with workers
-                        data.forEach(function (_enum) {
-                            input.append($('<option>', {
-                                value: _enum.val,
-                                text: _enum.text,
-                                selected: originalValue && _enum.val === originalValue
-                            }));
-                        });
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('Error fetching workers:', error);
-                    }
-                });
+                input = $('<select class="form-control">');
+                if (data.length === 0) return;
+                //
+                input.append($('<option>'));
+                data.forEach((value, key) => {
+                    input.append($('<option>', {
+                        value: key,
+                        text: value,
+                        selected: originalValue && key === originalValue
+                    }));
+                })
             } else return;
 
             // Replace cell content with input field
@@ -409,21 +394,21 @@
 
                 var trElement = tdElement.closest('tr'); // Find closest <tr> parent
                 var rowData = table.row(trElement).data(); // Get row data
-                //If id is null then no async
-                var async = !!rowData.id;
 
                 // Perform AJAX request to update the data
                 $.ajax({
                     url: '/api/jobData',
-                    async: async,
                     method: 'POST',
-                    dataType: 'text',
+                    dataType: 'json',
                     contentType: 'application/json',
                     data: JSON.stringify({"socketId": socketId, "job": rowData}),
-                    success: function () {
+                    success: function (data) {
                         console.log('Data updated');
-                        //If id null reload
-                        if (!async) table.ajax.reload(null, false);
+                        //If id null, get from response
+                        if (!!!rowData.id) {
+                            rowData.id = data.id;
+                            table.row(trElement).data(rowData);
+                        }
                     },
                     error: function (xhr, status, error) {
                         alert(error.message);
@@ -453,38 +438,40 @@
                 //Trigger blur to save
                 $('#myTable .form-control').trigger('blur');
             },
-            update: function (event, ui) {
-                // Update DataTable order after drag and drop
-                var newOrder = [];
-                var newOrderAjax = [];
-                var i = 1;
-                $('#myTable tbody tr').each(function () {
-                    var rowData = table.row(this).data();
-                    rowData.orderNumber = i;
-                    newOrder.push(rowData);
-                    var id = rowData.id;
-                    newOrderAjax.push({"id": id, "orderNumber": i});
-                    i++;
-                });
-                table.clear().rows.add(newOrder).draw();
-
-                // Perform AJAX request to update the data
-                $.ajax({
-                    url: '/api/reorderJobData',
-                    method: 'POST',
-                    dataType: 'text',
-                    contentType: "application/json",
-                    data: JSON.stringify({"socketId": socketId, "jobList": newOrderAjax}),
-                    success: function () {
-                        console.log("Data reordered");
-                    },
-                    error: function (xhr, status, error) {
-                        alert(error.message)
-                    }
-                });
-            }
+            update: reorder
         }).disableSelection();
     });
+
+    function reorder() {
+        // Update DataTable order after drag and drop
+        var newOrder = [];
+        var newOrderAjax = [];
+        var i = 1;
+        $('#myTable tbody tr').each(function () {
+            var rowData = table.row(this).data();
+            rowData.orderNumber = i;
+            newOrder.push(rowData);
+            var id = rowData.id;
+            newOrderAjax.push({"id": id, "orderNumber": i});
+            i++;
+        });
+        table.clear().rows.add(newOrder).draw();
+
+        // Perform AJAX request to update the data
+        $.ajax({
+            url: '/api/reorderJobData',
+            method: 'POST',
+            dataType: 'text',
+            contentType: "application/json",
+            data: JSON.stringify({"socketId": socketId, "jobList": newOrderAjax}),
+            success: function () {
+                console.log("Data reordered");
+            },
+            error: function (xhr, status, error) {
+                alert(error.message)
+            }
+        });
+    }
 
     function parseJSON(str) {
         str = str === '' ? null : str;
