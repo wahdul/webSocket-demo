@@ -61,9 +61,9 @@
     <ol>
         <li>Click on the "Add Record" button to add a new record.</li>
         <li>To edit an existing record, simply click on the cell you want to edit and make changes.</li>
-        <li>Focus on any cell within the table, then use the arrow keys to navigate vertically or horizontally through
-            table cells.
-        </li>
+        <li>Use the arrow keys to navigate vertically or horizontally through table cells.</li>
+        <li>When a cell with a select dropdown or datepicker is selected, press the space key to open the dropdown and use arrow keys to navigate options. Press the 'Enter' key to select an option.</li>
+        <li>In a cell with an address autocomplete selected, begin typing the address. As you type, a dropdown list of suggested addresses will appear. Use the arrow keys to navigate through the options. Press the 'Enter' key to select an address option. If needed, confirm the selection before proceeding.</li>
         <li>Navigate away from the cell or click outside it to save changes. Alternatively, press the 'Esc' key to
             discard changes.
         </li>
@@ -74,7 +74,6 @@
     <table id="myTable" class="table table-bordered">
         <thead>
         <tr>
-            <th></th>
             <th></th>
             <th>Transport Type</th>
             <th>Client</th>
@@ -169,12 +168,10 @@
         table = $('#myTable').DataTable({
             ajax: {url: '/api/jobData', dataSrc: ""},
             paging: false,
-            aDataSort: ["orderNumber", 'asc'],
             dom: "ft",
             autoWidth: true, // Set auto width
             columns: [
                 {data: "id", defaultContent: 0, visible: false},
-                {data: "orderNumber", defaultContent: 0, visible: false},
                 {
                     data: "transportType", defaultContent: "", className: 'transport-type-select',
                     render: function (data) {
@@ -223,13 +220,18 @@
                     }
                 },
                 {
-                    data: null, createdCell: function (td) {
+                    data: "orderNumber", createdCell: function (td) {
                         // $(td).html("<button type='button' class='btn-edit btn btn-warning mr-md-1'>Edit</button><button type='button' class='btn-delete btn btn-danger'>Delete</button>");
                         $(td).html("<button type='button' class='btn-delete btn btn-danger'>Delete</button>");
                     }
                 }
             ]
         });
+        // Get the number of columns
+        var numColumns = table.columns().count();
+
+        // Set the order by the last column
+        table.order([(@{[[numColumns - 1, 'asc']]})]).draw();
 
         $('#myTable').on('click', '.btn-delete', function () {
             var rowData = table.row($(this).closest('tr')); // Get row data
@@ -273,6 +275,7 @@
             //New data at the top of the table
             emptyData.orderNumber = 0;
             table.row.add(emptyData).draw();
+            saveSort();
             $('#myTable tbody tr:first td:first').trigger('click');
         });
 
@@ -411,6 +414,7 @@
                         console.log('Data updated');
                         //If id null, get from response
                         if (!!!rowData.id) {
+                            console.log("new id : " + data.id)
                             //Update id in table
                             idCell.data(data.id);
                             idCell.invalidate();
@@ -444,17 +448,18 @@
                 //Trigger blur to save
                 $('#myTable .form-control').trigger('blur');
             },
-            update: reorder
+            update: saveSort
         }).disableSelection();
     });
 
-    function reorder() {
+    function saveSort() {
         // Update DataTable order after drag and drop
         var newOrder = [];
         var newOrderAjax = [];
         var i = 1;
         $('#myTable tbody tr').each(function () {
             var rowData = table.row(this).data();
+            if (!rowData) return;
             rowData.orderNumber = i;
             newOrder.push(rowData);
             var id = rowData.id;
