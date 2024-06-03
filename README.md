@@ -17,6 +17,7 @@ Technologies Used:
 *	Spring Boot Framework 3.2.5
 *	Hibernate
 *	H2 database
+*	Thymeleaf template
 *	HTML
 *	CSS (Bootstrap)
 *	JavaScript (jQuery)
