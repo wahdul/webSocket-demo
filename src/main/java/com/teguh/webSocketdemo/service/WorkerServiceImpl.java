@@ -11,20 +11,20 @@ import java.util.List;
 public class WorkerServiceImpl implements WorkerService {
 
     @Autowired
-    private WorkerRepository WorkerRepository;
+    private WorkerRepository workerRepository;
 
     @Override
     public List<Worker> getAllWorker() {
-        return WorkerRepository.findAll();
+        return workerRepository.findAll();
     }
 
     @Override
     public void saveWorker(Worker worker) {
-        WorkerRepository.save(worker);
+        workerRepository.save(worker);
     }
 
     @Override
     public void deleteWorker(Worker worker) {
-        WorkerRepository.delete(worker);
+        workerRepository.delete(worker);
     }
 }

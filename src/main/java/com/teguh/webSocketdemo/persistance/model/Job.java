@@ -1,11 +1,6 @@
 package com.teguh.webSocketdemo.persistance.model;
 
-import com.teguh.webSocketdemo.util.Status;
-import com.teguh.webSocketdemo.util.TransportType;
-import com.teguh.webSocketdemo.util.Unit;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,6 +14,7 @@ public class Job {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @ManyToOne(fetch = FetchType.EAGER)
     private TransportType transportType;
     private String clientCode;
     private String referenceNo;
@@ -26,7 +22,9 @@ public class Job {
     private String pickupAddress;
     private String dropOffAddress;
     private String qty;
+    @ManyToOne(fetch = FetchType.EAGER)
     private Unit unit;
+    @ManyToOne(fetch = FetchType.EAGER)
     private Status status;
     private Integer orderNumber;
     private Date deleted;

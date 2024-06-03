@@ -3,12 +3,12 @@ package com.teguh.webSocketdemo.controller;
 import com.teguh.webSocketdemo.persistance.model.Job;
 import com.teguh.webSocketdemo.persistance.model.Worker;
 import com.teguh.webSocketdemo.service.JobService;
+import com.teguh.webSocketdemo.service.OptionDataService;
 import com.teguh.webSocketdemo.service.WebSocketService;
 import com.teguh.webSocketdemo.service.WorkerService;
-import com.teguh.webSocketdemo.util.Status;
-import com.teguh.webSocketdemo.util.TransportType;
-import com.teguh.webSocketdemo.util.Unit;
-import com.teguh.webSocketdemo.util.dto.EnumDTO;
+import com.teguh.webSocketdemo.persistance.model.Status;
+import com.teguh.webSocketdemo.persistance.model.TransportType;
+import com.teguh.webSocketdemo.persistance.model.Unit;
 import com.teguh.webSocketdemo.util.dto.JobRequestDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,13 +33,16 @@ public class JobController {
     private WorkerService workerService;
 
     @Autowired
+    private OptionDataService optionDataService;
+
+    @Autowired
     private WebSocketService webSocketService;
 
     @GetMapping("/jobs")
     public String jobList(Model model) {
-        model.addAttribute("transportTypeMap", Arrays.stream(TransportType.values()).collect(Collectors.toMap(TransportType::name, TransportType::getLabel)));
-        model.addAttribute("unitMap", Arrays.stream(Unit.values()).collect(Collectors.toMap(Unit::name, Unit::getLabel)));
-        model.addAttribute("statusMap", Arrays.stream(Status.values()).collect(Collectors.toMap(Status::name, Status::getLabel)));
+        model.addAttribute("transportTypeMap", optionDataService.getTransportTypes().stream().collect(Collectors.toMap(TransportType::getId, TransportType::getLabel)));
+        model.addAttribute("unitMap", optionDataService.getUnits().stream().collect(Collectors.toMap(Unit::getId, Unit::getLabel)));
+        model.addAttribute("statusMap", optionDataService.getStatuses().stream().collect(Collectors.toMap(Status::getId, Status::getLabel)));
         return "job-list";
     }
 

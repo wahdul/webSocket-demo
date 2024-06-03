@@ -122,15 +122,15 @@
 
     var transportTypeMap = new Map();
     /*[# th:each="entry : ${transportTypeMap.entrySet()}"]*/
-    transportTypeMap.set("[(${entry.key})]", "[(${entry.value})]");
+    transportTypeMap.set([(${entry.key})], "[(${entry.value})]");
     /*[/]*/
     var unitMap = new Map();
     /*[# th:each="entry : ${unitMap.entrySet()}"]*/
-    unitMap.set("[(${entry.key})]", "[(${entry.value})]");
+    unitMap.set([(${entry.key})], "[(${entry.value})]");
     /*[/]*/
     var statusMap = new Map();
     /*[# th:each="entry : ${statusMap.entrySet()}"]*/
-    statusMap.set("[(${entry.key})]", "[(${entry.value})]");
+    statusMap.set([(${entry.key})], "[(${entry.value})]");
 
     /*[/]*/
 
@@ -177,7 +177,7 @@
                     data: "transportType", defaultContent: "", className: 'transport-type-select',
                     render: function (data) {
                         if (data !== undefined && data !== null) {
-                            return transportTypeMap.get(data);
+                            return transportTypeMap.get(data.id);
                         }
                     }
                 },
@@ -198,7 +198,7 @@
                     data: "unit", defaultContent: "", className: 'unit-select',
                     render: function (data) {
                         if (data !== undefined && data !== null) {
-                            return unitMap.get(data);
+                            return unitMap.get(data.id);
                         }
                     }
                 },
@@ -216,7 +216,7 @@
                     data: "status", defaultContent: "", className: 'status-select',
                     render: function (data) {
                         if (data !== undefined && data !== null) {
-                            return statusMap.get(data);
+                            return statusMap.get(data.id);
                         }
                     }
                 },
@@ -359,9 +359,9 @@
                 input.append($('<option>'));
                 data.forEach((value, key) => {
                     input.append($('<option>', {
-                        value: key,
+                        value: JSON.stringify({id:key}),
                         text: value,
-                        selected: originalValue && key === originalValue
+                        selected: originalValue && key === originalValue.id
                     }));
                 })
             } else return;
