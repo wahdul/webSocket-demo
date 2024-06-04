@@ -15,7 +15,7 @@
         }
 
         .container {
-            max-width: 1800px;
+            min-width: 100%;
             margin: 0 auto;
         }
 
@@ -68,6 +68,7 @@
             discard changes.
         </li>
         <li>To delete a record, click on the "Delete" button in the corresponding row.</li>
+        <li>You can easily rearrange rows in the table by clicking and dragging them. Simply click on the row you want to move, hold down your mouse button, and then drag it to the new position. Once you release the mouse button, the row will be dropped into place.</li>
     </ol>
 
     <button type="button" class="btn btn-primary btn-add-record" id="btnAdd" data-toggle="modal">Add Record</button>
@@ -120,20 +121,6 @@
 
     let reconnectInterval = 2000; // Reconnect interval in milliseconds
 
-    var transportTypeMap = new Map();
-    /*[# th:each="entry : ${transportTypeMap.entrySet()}"]*/
-    transportTypeMap.set([(${entry.key})], "[(${entry.value})]");
-    /*[/]*/
-    var unitMap = new Map();
-    /*[# th:each="entry : ${unitMap.entrySet()}"]*/
-    unitMap.set([(${entry.key})], "[(${entry.value})]");
-    /*[/]*/
-    var statusMap = new Map();
-    /*[# th:each="entry : ${statusMap.entrySet()}"]*/
-    statusMap.set([(${entry.key})], "[(${entry.value})]");
-
-    /*[/]*/
-
     function connect(isReconnect) {
         var socket = new SockJS('/ws', null, options);
         var stompClient = Stomp.over(socket);
@@ -176,8 +163,8 @@
                 {
                     data: "transportType", defaultContent: "", className: 'transport-type-select',
                     render: function (data) {
-                        if (data !== undefined && data !== null) {
-                            return transportTypeMap.get(data.id);
+                        if (data != null && data.label != null) {
+                            return data.label;
                         }
                     }
                 },
@@ -197,8 +184,8 @@
                 {
                     data: "unit", defaultContent: "", className: 'unit-select',
                     render: function (data) {
-                        if (data !== undefined && data !== null) {
-                            return unitMap.get(data.id);
+                        if (data != null && data.label != null) {
+                            return data.label;
                         }
                     }
                 },
@@ -215,8 +202,8 @@
                 {
                     data: "status", defaultContent: "", className: 'status-select',
                     render: function (data) {
-                        if (data !== undefined && data !== null) {
-                            return statusMap.get(data.id);
+                        if (data != null && data.label != null) {
+                            return data.label;
                         }
                     }
                 },
@@ -343,27 +330,42 @@
                     }
                 });
             } else if (classNames.includes("transport-type-select") || classNames.includes("unit-select") || classNames.includes("status-select")) {
-                var data;
+                var url;
 
                 if (classNames.includes("transport-type-select")) {
-                    data = transportTypeMap;
+                    url = '/api/transportTypes';
                 } else if (classNames.includes("unit-select")) {
-                    data = unitMap;
+                    url = '/api/units';
                 } else if (classNames.includes("status-select")) {
-                    data = statusMap;
+                    url = '/api/statuses';
                 }
 
-                input = $('<select class="form-control">');
-                if (data.length === 0) return;
-                //
-                input.append($('<option>'));
-                data.forEach((value, key) => {
-                    input.append($('<option>', {
-                        value: JSON.stringify({id:key}),
-                        text: value,
-                        selected: originalValue && key === originalValue.id
-                    }));
-                })
+                // Fetch workers list from API
+                $.ajax({
+                    url: url,
+                    async: false,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        // Create a select element
+                        input = $('<select class="form-control">');
+                        if (data.length === 0) return;
+                        //
+                        input.append($('<option>'));
+
+                        // Populate select element with workers
+                        data.forEach(function (data) {
+                            input.append($('<option>', {
+                                value: JSON.stringify(data),
+                                text: data.label,
+                                selected: originalValue && data.id === originalValue.id
+                            }));
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching option:', error);
+                    }
+                });
             } else return;
 
             // Replace cell content with input field

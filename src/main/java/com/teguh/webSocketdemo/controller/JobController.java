@@ -40,9 +40,6 @@ public class JobController {
 
     @GetMapping("/jobs")
     public String jobList(Model model) {
-        model.addAttribute("transportTypeMap", optionDataService.getTransportTypes().stream().collect(Collectors.toMap(TransportType::getId, TransportType::getLabel)));
-        model.addAttribute("unitMap", optionDataService.getUnits().stream().collect(Collectors.toMap(Unit::getId, Unit::getLabel)));
-        model.addAttribute("statusMap", optionDataService.getStatuses().stream().collect(Collectors.toMap(Status::getId, Status::getLabel)));
         return "job-list";
     }
 
@@ -81,5 +78,23 @@ public class JobController {
     public void reorderJobData(@RequestBody JobRequestDTO requestDTO) {
         jobService.reorderJobData(requestDTO.getJobList());
         webSocketService.sendMessage("/topic/job", requestDTO.getSocketId());
+    }
+
+    @GetMapping("/api/transportTypes")
+    @ResponseBody
+    public List<TransportType> getTransportTypes() {
+        return optionDataService.getTransportTypes(); // Return all enum values as an array
+    }
+
+    @GetMapping("/api/units")
+    @ResponseBody
+    public List<Unit> getUnits() {
+        return optionDataService.getUnits(); // Return all enum values as an array
+    }
+
+    @GetMapping("/api/statuses")
+    @ResponseBody
+    public List<Status> getStatuses() {
+        return optionDataService.getStatuses(); // Return all enum values as an array
     }
 }
