@@ -208,9 +208,9 @@
                     }
                 },
                 {
-                    data: "id", createdCell: function (td) {
+                    data: "id", render: function () {
                         // $(td).html("<button type='button' class='btn-edit btn btn-warning mr-md-1'>Edit</button><button type='button' class='btn-delete btn btn-danger'>Delete</button>");
-                        $(td).html("<button type='button' class='btn-delete btn btn-danger'>Delete</button>");
+                        return "<button type='button' class='btn-delete btn btn-danger'>Delete</button>";
                     }
                 }
             ]
