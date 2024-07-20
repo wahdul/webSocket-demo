@@ -114,6 +114,7 @@
 
 <script th:inline="javascript">
     var table, socketId = generateRandomString(15);
+    var url = '/api/jobData';
     const options = {
         reconnectInterval: 3000, // Reconnect interval in milliseconds
         debug: true // Enable debug logging
@@ -147,13 +148,13 @@
         //Disable blur
         $('#myTable .form-control').off('blur');
         console.log("reload");
-        table.ajax.reload(null, false);
+        table.ajax.url(url).load();
     }
 
     $(document).ready(function () {
         connect(false);
         table = $('#myTable').DataTable({
-            ajax: {url: '/api/jobData', dataSrc: "data"},
+            ajax: {url: url, dataSrc: "data"},
             processing: true,
             serverSide: true,
             order: [ [0, 'asc'] ],
@@ -226,11 +227,8 @@
             var id = rowData.data().id;
 
             if (confirm("Are you sure want to delete this data?")) {
-                var rowIndex = table.row($(this).closest('tr')).index();// Get the index of the clicked row
-
-                // Remove the row from the DataTable
-                table.row(rowIndex).remove().draw();
-                if (id === undefined) {
+                if (id == null) {
+                    table.ajax.url(url).load();
                     return;
                 }
                 // Perform AJAX call to delete data from server
@@ -242,6 +240,7 @@
                     data: JSON.stringify({"socketId": socketId, "job": {"id": id}}),
                     success: function () {
                         console.log("Data has been deleted");
+                        table.ajax.url(url).load();
                     },
                     error: function (xhr, status, error) {
                         alert(error.message)
@@ -251,18 +250,10 @@
         });
 
         $('#btnAdd').click(function () {
-            var emptyData = {};
-            // Get the data property values of all columns to empty object
-            table.columns().every(function () {
-                var column = this;
-                var dataProperty = column.dataSrc();
-                emptyData[dataProperty] = null;
-            });
-            //New data at the top of the table
-            emptyData.orderNumber = 0;
-            table.row.add(emptyData).draw();
-            saveSort();
-            $('#myTable tbody tr:first td:first').trigger('click');
+            // Reset back to the original URL
+            var newDataUrl = url + '/newData';
+            table.ajax.url(newDataUrl).load();
+            console.log(table.ajax);
         });
 
         $(document).on('keydown', '#myTable td', function (e) {
@@ -382,7 +373,7 @@
                 if (event.type === 'blur' || event.which === 27) {
                     if (event.which === 27) { // Escape key
                         $(this).remove(); // Remove the input element
-                        cell.data(originalValue).draw(); // Restore original value
+                        cell.data(originalValue); // Restore original value
                     } else if (event.type === 'blur') { // Enter key or blur/change event
                         updateData.call(this); // Call updateData function with 'this' context
                     }
@@ -397,17 +388,13 @@
                 var newValue = parseJSON($(this).val()); // Get new value from input field
                 console.log("Save");
 
-                cell.data(newValue).draw(); // Update cell with new value
-                console.log('masuk1');
+                cell.data(newValue); // Update cell with new value
 
                 if (deepEqual(originalValue, newValue)) return; // No change, exit early
-                console.log('masuk2');
 
                 var trElement = tdElement.closest('tr'); // Find closest <tr> parent
-                console.log('masuk3');
                 var rowData = table.row(trElement).data(); // Get row data
 
-                console.log('masuk');
                 // Perform AJAX request to update the data
                 $.ajax({
                     url: '/api/jobData',
@@ -471,7 +458,6 @@
             newOrderAjax.push({"id": id, "orderNumber": i});
             i++;
         });
-        table.clear().rows.add(newOrder).draw();
 
         // Perform AJAX request to update the data
         $.ajax({
@@ -482,6 +468,7 @@
             data: JSON.stringify({"socketId": socketId, "jobList": newOrderAjax}),
             success: function () {
                 console.log("Data reordered");
+                table.ajax.url(url).load();
             },
             error: function (xhr, status, error) {
                 alert(error.message)

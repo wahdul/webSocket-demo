@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +79,22 @@ public class JobController {
         dtResponse.setData(jobPage.getContent());
 
         return dtResponse;
+    }
+
+    @GetMapping("/api/jobData/newData")
+    @ResponseBody
+    public DataTableResponseDTO<Job> getAllJobWithNewData(@RequestParam int draw,
+                               @RequestParam int start,
+                               @RequestParam int length,
+                               @RequestParam Map<String, String> queryMap) {
+        DataTableResponseDTO<Job> jobDataTableResponseDTO = getAllJob(draw, start, length, queryMap);
+
+        List<Job> jobList = new ArrayList<>();
+        jobList.add(new Job());
+        jobList.addAll(jobDataTableResponseDTO.getData());
+        jobDataTableResponseDTO.setData(jobList);
+
+        return jobDataTableResponseDTO;
     }
 
     @GetMapping("/api/workerData")
