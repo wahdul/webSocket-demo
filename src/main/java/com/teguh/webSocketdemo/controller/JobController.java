@@ -9,19 +9,24 @@ import com.teguh.webSocketdemo.service.WorkerService;
 import com.teguh.webSocketdemo.persistance.model.Status;
 import com.teguh.webSocketdemo.persistance.model.TransportType;
 import com.teguh.webSocketdemo.persistance.model.Unit;
+import com.teguh.webSocketdemo.util.dto.DataTableResponseDTO;
 import com.teguh.webSocketdemo.util.dto.JobRequestDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 @Controller
 public class JobController {
@@ -45,8 +50,34 @@ public class JobController {
 
     @GetMapping("/api/jobData")
     @ResponseBody
-    public List<Job> getAllJob() {
-        return jobService.getAllJob();
+    public DataTableResponseDTO<Job> getAllJob(@RequestParam int draw,
+                               @RequestParam int start,
+                               @RequestParam int length,
+                               @RequestParam Map<String, String> queryMap) {
+        String searchValue = queryMap.get("search[value]");
+
+        // Calculate page number
+        int pageNumber = start / length;
+
+        // Create Pageable instance for pagination and sorting
+        Pageable pageable = PageRequest.of(pageNumber, length);
+
+        // Fetch data from database
+        Page<Job> jobPage;
+        if (!searchValue.isEmpty()) {
+            jobPage = jobService.findBySearchTerm(searchValue, pageable);
+        } else {
+            jobPage = jobService.getAllJob(pageable);
+        }
+
+        // Prepare response
+        DataTableResponseDTO<Job> dtResponse = new DataTableResponseDTO<>();
+        dtResponse.setDraw(draw);
+        dtResponse.setRecordsTotal(jobService.countAll());
+        dtResponse.setRecordsFiltered((int) jobPage.getTotalElements());
+        dtResponse.setData(jobPage.getContent());
+
+        return dtResponse;
     }
 
     @GetMapping("/api/workerData")

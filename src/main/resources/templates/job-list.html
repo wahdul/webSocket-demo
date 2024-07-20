@@ -153,10 +153,10 @@
     $(document).ready(function () {
         connect(false);
         table = $('#myTable').DataTable({
-            ajax: {url: '/api/jobData', dataSrc: ""},
-            paging: false,
+            ajax: {url: '/api/jobData', dataSrc: "data"},
+            processing: true,
+            serverSide: true,
             order: [ [0, 'asc'] ],
-            dom: "ft",
             autoWidth: true, // Set auto width
             columns: [
                 {data: "orderNumber", defaultContent: 0, visible: false},
@@ -213,7 +213,8 @@
                         return "<button type='button' class='btn-delete btn btn-danger'>Delete</button>";
                     }
                 }
-            ]
+            ],
+            lengthMenu: [10, 25, 50, 100]
         });
         // Get the number of columns
         var numColumns = table.columns().count();
@@ -397,12 +398,16 @@
                 console.log("Save");
 
                 cell.data(newValue).draw(); // Update cell with new value
+                console.log('masuk1');
 
                 if (deepEqual(originalValue, newValue)) return; // No change, exit early
+                console.log('masuk2');
 
                 var trElement = tdElement.closest('tr'); // Find closest <tr> parent
+                console.log('masuk3');
                 var rowData = table.row(trElement).data(); // Get row data
 
+                console.log('masuk');
                 // Perform AJAX request to update the data
                 $.ajax({
                     url: '/api/jobData',
