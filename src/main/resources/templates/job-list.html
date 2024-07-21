@@ -24,9 +24,24 @@
             margin-top: 50px;
             margin-bottom: 30px;
         }
-
+        .box-container {
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+        }
+        .box-header {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ccc;
+        }
+        .box-body {
+            padding: 10px;
+        }
         .btn-add-record {
             margin-bottom: 20px;
+        }
+        .collapse-text {
+            text-align: right;
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyApg-WC0f4YH1B3m1BG4HEPwlke287Hl6s&libraries=places"></script>
@@ -43,33 +58,42 @@
 
 <!-- Main Content -->
 <div class="container mt-5">
-    <h1>Welcome to Transport Management System</h1>
-    <p>This web application allows collaborative data entry and inline editing of tables. You can easily add, edit, and
-        delete records in the table.</p>
+    <div class="box-container">
+        <div class="box-header" data-toggle="collapse" data-target="#collapseExample">
+            <h5 class="mb-0 collapse-text">Click to Minimize/Expand</h5>
+        </div>
+        <div id="collapseExample" class="collapse show">
+            <div class="box-body">
+                <h1>Welcome to Transport Management System</h1>
+                <p>This web application allows collaborative data entry and inline editing of tables. You can easily add, edit, and
+                    delete records in the table.</p>
 
-    <h2>Features:</h2>
-    <ul>
-        <li>Collaborative data entry</li>
-        <li>Inline editing of tables</li>
-        <li>Automatic reconnection to the server if the connection is lost</li>
-        <li>Automatic page refresh upon successful reconnection</li>
-        <li>Keyboard navigation for DataTables</li>
-        <li>Google Maps API address autocomplete</li>
-    </ul>
+                <h2>Features:</h2>
+                <ul>
+                    <li>Collaborative data entry</li>
+                    <li>Inline editing of tables</li>
+                    <li>Automatic reconnection to the server if the connection is lost</li>
+                    <li>Automatic page refresh upon successful reconnection</li>
+                    <li>Keyboard navigation for DataTables</li>
+                    <li>Google Maps API address autocomplete</li>
+                </ul>
 
-    <h2>How to Use:</h2>
-    <ol>
-        <li>Click on the "Add Record" button to add a new record.</li>
-        <li>To edit an existing record, simply click on the cell you want to edit and make changes.</li>
-        <li>Use the arrow keys to navigate vertically or horizontally through table cells.</li>
-        <li>When a cell with a select dropdown or datepicker is selected, press the space key to open the dropdown and use arrow keys to navigate options. Press the 'Enter' key to select an option.</li>
-        <li>In a cell with an address autocomplete selected, begin typing the address. As you type, a dropdown list of suggested addresses will appear. Use the arrow keys to navigate through the options. Press the 'Enter' key to select an address option. If needed, confirm the selection before proceeding.</li>
-        <li>Navigate away from the cell or click outside it to save changes. Alternatively, press the 'Esc' key to
-            discard changes.
-        </li>
-        <li>To delete a record, click on the "Delete" button in the corresponding row.</li>
-        <li>You can easily rearrange rows in the table by clicking and dragging them. Simply click on the row you want to move, hold down your mouse button, and then drag it to the new position. Once you release the mouse button, the row will be dropped into place.</li>
-    </ol>
+                <h2>How to Use:</h2>
+                <ol>
+                    <li>Click on the "Add Record" button to add a new record.</li>
+                    <li>To edit an existing record, simply click on the cell you want to edit and make changes.</li>
+                    <li>Use the arrow keys to navigate vertically or horizontally through table cells.</li>
+                    <li>When a cell with a select dropdown or datepicker is selected, press the space key to open the dropdown and use arrow keys to navigate options. Press the 'Enter' key to select an option.</li>
+                    <li>In a cell with an address autocomplete selected, begin typing the address. As you type, a dropdown list of suggested addresses will appear. Use the arrow keys to navigate through the options. Press the 'Enter' key to select an address option. If needed, confirm the selection before proceeding.</li>
+                    <li>Navigate away from the cell or click outside it to save changes. Alternatively, press the 'Esc' key to
+                        discard changes.
+                    </li>
+                    <li>To delete a record, click on the "Delete" button in the corresponding row.</li>
+                    <li>You can easily rearrange rows in the table by clicking and dragging them. Simply click on the row you want to move, hold down your mouse button, and then drag it to the new position. Once you release the mouse button, the row will be dropped into place.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
 
     <button type="button" class="btn btn-primary btn-add-record" id="btnAdd" data-toggle="modal">Add Record</button>
     <table id="myTable" class="table table-bordered">
@@ -252,8 +276,12 @@
         $('#btnAdd').click(function () {
             // Reset back to the original URL
             var newDataUrl = url + '/newData';
-            table.ajax.url(newDataUrl).load();
+            table.ajax.url(newDataUrl).load(callback);
         });
+
+        function callback(){
+            $('#myTable tbody tr:first td:first').trigger('click');
+        }
 
         $(document).on('keydown', '#myTable td', function (e) {
             var keyCode = e.keyCode || e.which;
