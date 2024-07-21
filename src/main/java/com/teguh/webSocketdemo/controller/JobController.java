@@ -2,6 +2,7 @@ package com.teguh.webSocketdemo.controller;
 
 import com.teguh.webSocketdemo.persistance.model.Job;
 import com.teguh.webSocketdemo.persistance.model.Worker;
+import com.teguh.webSocketdemo.service.AllocationService;
 import com.teguh.webSocketdemo.service.JobService;
 import com.teguh.webSocketdemo.service.OptionDataService;
 import com.teguh.webSocketdemo.service.WebSocketService;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -40,6 +43,9 @@ public class JobController {
 
     @Autowired
     private OptionDataService optionDataService;
+
+    @Autowired
+    private AllocationService allocationService;
 
     @Autowired
     private WebSocketService webSocketService;
@@ -144,5 +150,24 @@ public class JobController {
     @ResponseBody
     public List<Status> getStatuses() {
         return optionDataService.getStatuses(); // Return all enum values as an array
+    }
+
+    @GetMapping("/api/allocations")
+    public ResponseEntity<Map<String, Object>> getJobs() {
+
+//        Worker worker = null;
+//        if (workerId != null) {
+//            // Fetch worker from database
+//            worker = workerService.findById(workerId);
+//        }
+
+        // Calculate fromDate as today
+        LocalDate fromDate = LocalDate.now();
+
+        // Calculate toDate as 7 days from today
+        LocalDate toDate = fromDate.plusDays(7);
+
+        Map<String, Object> allocationMapList = allocationService.getAllocationData(fromDate, toDate);
+        return ResponseEntity.ok(allocationMapList);
     }
 }

@@ -43,6 +43,19 @@
         .collapse-text {
             text-align: right;
         }
+        .worker-cell {
+            min-height: 50px;
+            position: relative;
+        }
+        .job {
+            background-color: #4CAF50;
+            color: white;
+            padding: 5px;
+            margin: 5px 0;
+            cursor: move;
+            z-index: 9999;
+            min-height: 50px;
+        }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyApg-WC0f4YH1B3m1BG4HEPwlke287Hl6s&libraries=places"></script>
 </head>
@@ -114,6 +127,8 @@
         </tr>
         </thead>
     </table>
+    <h2>Job Schedule</h2>
+    <table id="allocationTable" class="table table-bordered"></table>
 </div>
 
 <footer class="mt-5">
@@ -137,7 +152,7 @@
 <script src="/js/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 
 <script th:inline="javascript">
-    var table, socketId = generateRandomString(15);
+    var jobTable, allocationJob = null, socketId = generateRandomString(15);
     var url = '/api/jobData';
     const options = {
         reconnectInterval: 3000, // Reconnect interval in milliseconds
@@ -172,12 +187,13 @@
         //Disable blur
         $('#myTable .form-control').off('blur');
         console.log("reload");
-        table.ajax.url(url).load();
+        reloadDataAndReinitialize();
+        buildAllocationTable();
     }
 
     $(document).ready(function () {
         connect(false);
-        table = $('#myTable').DataTable({
+        jobTable = $('#myTable').DataTable({
             ajax: {url: url, dataSrc: "data"},
             processing: true,
             serverSide: true,
@@ -194,7 +210,7 @@
                     }
                 },
                 {data: "clientCode", defaultContent: "", className: 'text'},
-                {data: "referenceNo", defaultContent: "", className: 'text'},
+                {data: "referenceNo", defaultContent: "", className: 'text job'},
                 {
                     data: "date", defaultContent: "", className: 'date',
                     render: function (data) {
@@ -239,20 +255,31 @@
                     }
                 }
             ],
-            lengthMenu: [10, 25, 50, 100]
+            lengthMenu: [10, 25, 50, 100],
+            createdRow: function(row, data, dataIndex) {
+                var jobId = data.id;
+                var jobRef = data.referenceNo;
+
+                // Example: Adding data-job-id to the second cell (index 1) in each row
+                $(row).find('td').attr('data-job-id', jobId);
+                $(row).find('td').attr('data-job-ref', jobRef);
+            },
+            initComplete: function() {
+                initializeUIFeatures();
+            }
         });
         // Get the number of columns
-        var numColumns = table.columns().count();
+        var numColumns = jobTable.columns().count();
 
         $('#myTable').on('click', '.btn-delete', function () {
-            var rowData = table.row($(this).closest('tr')); // Get row data
+            var rowData = jobTable.row($(this).closest('tr')); // Get row data
 
             // Populate modal form fields with row data
             var id = rowData.data().id;
 
             if (confirm("Are you sure want to delete this data?")) {
                 if (id == null) {
-                    table.ajax.url(url).load();
+                    reloadDataAndReinitialize();
                     return;
                 }
                 // Perform AJAX call to delete data from server
@@ -264,7 +291,7 @@
                     data: JSON.stringify({"socketId": socketId, "job": {"id": id}}),
                     success: function () {
                         console.log("Data has been deleted");
-                        table.ajax.url(url).load();
+                        reloadDataAndReinitialize();
                     },
                     error: function (xhr, status, error) {
                         alert(error.message)
@@ -276,11 +303,12 @@
         $('#btnAdd').click(function () {
             // Reset back to the original URL
             var newDataUrl = url + '/newData';
-            table.ajax.url(newDataUrl).load(callback);
+            jobTable.ajax.url(newDataUrl).load(callback);
         });
 
         function callback(){
             $('#myTable tbody tr:first td:first').trigger('click');
+            initializeUIFeatures();
         }
 
         $(document).on('keydown', '#myTable td', function (e) {
@@ -298,11 +326,11 @@
             //Prevent recreate another input
             if (tdElement.find('*').length > 0) return;
 
-            var cell = table.cell(this);
+            var cell = jobTable.cell(this);
             var originalValue = cell.data();
             var rowIndex = cell.index().row;
             // Get the corresponding id cell in the same row
-            var idCell = table.cell(rowIndex, numColumns - 1);
+            var idCell = jobTable.cell(rowIndex, numColumns - 1);
             var columnIndex = cell.index().column;
             var input;
 
@@ -420,7 +448,7 @@
                 if (deepEqual(originalValue, newValue)) return; // No change, exit early
 
                 var trElement = tdElement.closest('tr'); // Find closest <tr> parent
-                var rowData = table.row(trElement).data(); // Get row data
+                var rowData = jobTable.row(trElement).data(); // Get row data
 
                 // Perform AJAX request to update the data
                 $.ajax({
@@ -458,17 +486,8 @@
                 new google.maps.places.Autocomplete(_input, options);
             }
         });
-        $('#myTable tbody').sortable({
-            items: 'tr',
-            cursor: 'move',
-            opacity: 0.6,
-            width: 1,
-            start: function (event, ui) {
-                //Trigger blur to save
-                $('#myTable .form-control').trigger('blur');
-            },
-            update: saveSort
-        }).disableSelection();
+
+        buildAllocationTable();
     });
 
     function saveSort() {
@@ -477,7 +496,7 @@
         var newOrderAjax = [];
         var i = 1;
         $('#myTable tbody tr').each(function () {
-            var rowData = table.row(this).data();
+            var rowData = jobTable.row(this).data();
             if (!rowData) return;
             rowData.orderNumber = i;
             newOrder.push(rowData);
@@ -495,7 +514,7 @@
             data: JSON.stringify({"socketId": socketId, "jobList": newOrderAjax}),
             success: function () {
                 console.log("Data reordered");
-                table.ajax.url(url).load();
+                reloadDataAndReinitialize();
             },
             error: function (xhr, status, error) {
                 alert(error.message)
@@ -549,7 +568,7 @@
     }
 
     function moveCell(currentCell, keyCode) {
-        var cell = table.cell(currentCell);
+        var cell = jobTable.cell(currentCell);
         var nextCell;
 
         switch (keyCode) {
@@ -581,6 +600,107 @@
             // Handle focus for accessibility
             nextCell.focus();
         }
+    }
+
+    function buildAllocationTable() {
+        $.ajax({
+            type: 'GET',
+            url: '/api/allocations',
+            success: function(d) {
+                console.log(d.data)
+                console.log(d.columns)
+                if (allocationJob == null) {
+                    allocationJob = $('#allocationTable').DataTable({
+                        data: d.data,
+                        columns: d.columns,
+                        createdRow: function (row, data, dataIndex) {
+                            // Add worker-cell class to all cells in each row except the first one
+                            $(row).find('td:not(:first-child)').addClass('worker-cell');
+                            $(row).find('td').attr('worker-id', data.id);
+                            $(row).find('td:not(:first-child)').each(function (index, element) {
+                                var date = d.columns[index + 1].title;
+                                // Example: Add an attribute with the index
+                                $(element).attr('date', date);
+                            });
+                        }
+                    });
+                } else {
+                    allocationJob.clear().rows.add(d.data).draw();
+                }
+                initializeUIFeatures();
+            }
+        });
+    }
+
+    // Function to initialize UI features (draggable, droppable, sortable)
+    function initializeUIFeatures() {
+        // Make jobs draggable (after DataTables initialization)
+        $('.job').draggable({
+            revert: 'invalid',
+            helper: function(event) {
+                var originalElement = $(this);
+                var helperElement = originalElement.clone();
+                helperElement.addClass('from-job-table');
+                return helperElement;
+            },
+        });
+
+        // Make worker cells droppable
+        $('.worker-cell').droppable({
+            //accept: '.job',
+            accept: function(draggable) {
+                // Example condition to accept only certain jobs
+                var draggableJobId = $(draggable).data('job-id');
+                return !$(this).find('.job[data-job-id="' + draggableJobId + '"]').length;
+            },
+            drop: function(event, ui) {
+                var jobId = ui.helper.data('job-id');
+                var jobRef = ui.helper.data('job-ref');
+                var workerId = $(this).data('worker-id');
+                var date = $(this).data('date');
+                var isFromJobTable = $(ui.helper).hasClass('from-job-table');
+                // Check if the job with jobId already exists in this worker cell
+                if (isFromJobTable && !$(this).find('.job[data-job-id="' + jobId + '"]').length) {
+                    $(this).append('<div class="job" data-job-id="' + jobId + '" data-job-ref="' + jobRef + '"> ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + '</div>');
+
+                    // Here you can implement logic to manage job priority for the worker on the given date
+                } else {
+                    console.log('Job ' + jobId + ' already exists for this worker.');
+                }
+            }
+        });
+
+        // Make jobs within worker table draggable and sortable
+        $('.worker-cell').sortable({
+            items: '.job',
+            connectWith: '.worker-cell',
+            placeholder: 'job-placeholder',
+            forcePlaceholderSize: true,
+            tolerance: 'pointer',
+            dropOnEmpty: true,
+            revert: true, // Items will revert to their original position if not dropped onto a valid sortable target
+            receive: function(event, ui) {
+                var jobId = ui.item.data('job-id');
+                var jobRef = ui.item.data('job-ref');
+                var workerId = $(this).data('worker-id');
+                var date = $(this).data('date');
+                console.log($(this));
+                if ($(this).find('.job[data-job-id="' + jobId + '"]').length > 1) {
+                    // Revert sorting
+                    ui.sender.sortable( "cancel" );
+                    alert('Job ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + ' already exists for this worker.');
+                }
+
+                // Implement logic to handle job re-allocation within the worker's schedule
+            }
+        }).disableSelection();
+    }
+
+    function reloadDataAndReinitialize() {
+        jobTable.ajax.url(url).load(function() {
+            // Callback function after data reload is complete
+            initializeUIFeatures(); // Reinitialize UI features after DataTable reload
+        });
     }
 </script>
 </body>
