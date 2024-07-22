@@ -610,7 +610,7 @@
                         data: d.data,
                         columns: d.columns,
                         createdRow: function (row, data, dataIndex) {
-                            var worker = btoa(JSON.stringify(data));
+                            var worker = btoa(JSON.stringify(data.worker));
                             // Add worker-cell class to all cells in each row except the first one
                             $(row).find('td:not(:first-child)').addClass('worker-cell');
                             $(row).find('td').attr('worker', worker);
