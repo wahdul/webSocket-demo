@@ -257,12 +257,10 @@
             ],
             lengthMenu: [10, 25, 50, 100],
             createdRow: function(row, data, dataIndex) {
-                var jobId = data.id;
-                var jobRef = data.referenceNo;
+                var job = btoa(JSON.stringify(data))
 
-                // Example: Adding data-job-id to the second cell (index 1) in each row
-                $(row).find('td').attr('data-job-id', jobId);
-                $(row).find('td').attr('data-job-ref', jobRef);
+                // Example: Adding data-job to the second cell (index 1) in each row
+                $(row).find('td').attr('data-job', job);
             },
             initComplete: function() {
                 initializeUIFeatures();
@@ -607,16 +605,15 @@
             type: 'GET',
             url: '/api/allocations',
             success: function(d) {
-                console.log(d.data)
-                console.log(d.columns)
                 if (allocationJob == null) {
                     allocationJob = $('#allocationTable').DataTable({
                         data: d.data,
                         columns: d.columns,
                         createdRow: function (row, data, dataIndex) {
+                            var worker = btoa(JSON.stringify(data));
                             // Add worker-cell class to all cells in each row except the first one
                             $(row).find('td:not(:first-child)').addClass('worker-cell');
-                            $(row).find('td').attr('worker-id', data.id);
+                            $(row).find('td').attr('worker', worker);
                             $(row).find('td:not(:first-child)').each(function (index, element) {
                                 var date = d.columns[index + 1].title;
                                 // Example: Add an attribute with the index
@@ -649,19 +646,21 @@
         $('.worker-cell').droppable({
             //accept: '.job',
             accept: function(draggable) {
+                var job = JSON.parse(atob($(draggable).data('job')));
                 // Example condition to accept only certain jobs
-                var draggableJobId = $(draggable).data('job-id');
+                var draggableJobId = job.id;
                 return !$(this).find('.job[data-job-id="' + draggableJobId + '"]').length;
             },
             drop: function(event, ui) {
-                var jobId = ui.helper.data('job-id');
-                var jobRef = ui.helper.data('job-ref');
+                var job = JSON.parse(atob(ui.helper.data('job')));
+                var jobId = job.id;
+                var jobRef = job.referenceNo;
                 var workerId = $(this).data('worker-id');
                 var date = $(this).data('date');
                 var isFromJobTable = $(ui.helper).hasClass('from-job-table');
                 // Check if the job with jobId already exists in this worker cell
                 if (isFromJobTable && !$(this).find('.job[data-job-id="' + jobId + '"]').length) {
-                    $(this).append('<div class="job" data-job-id="' + jobId + '" data-job-ref="' + jobRef + '"> ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + '</div>');
+                    $(this).append('<div class="job" data-job-id="' + jobId + '" data-job="' + btoa(JSON.stringify(job)) + '"> ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + '</div>');
 
                     // Here you can implement logic to manage job priority for the worker on the given date
                 } else {
@@ -680,11 +679,11 @@
             dropOnEmpty: true,
             revert: true, // Items will revert to their original position if not dropped onto a valid sortable target
             receive: function(event, ui) {
-                var jobId = ui.item.data('job-id');
-                var jobRef = ui.item.data('job-ref');
+                var job = JSON.parse(atob(ui.item.data('job')));
+                var jobId = job.id;
+                var jobRef = job.referenceNo;
                 var workerId = $(this).data('worker-id');
                 var date = $(this).data('date');
-                console.log($(this));
                 if ($(this).find('.job[data-job-id="' + jobId + '"]').length > 1) {
                     // Revert sorting
                     ui.sender.sortable( "cancel" );
