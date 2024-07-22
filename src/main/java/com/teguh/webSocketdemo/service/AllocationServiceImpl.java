@@ -9,11 +9,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class AllocationServiceImpl implements AllocationService {
@@ -58,7 +63,7 @@ public class AllocationServiceImpl implements AllocationService {
         List<Map<String, String>> columns = new ArrayList<>();
         Map<String, String> column = new HashMap<>();
         column.put("title", "Worker Name");
-        column.put("data", "name");
+        column.put("data", "worker.name");
         columns.add(column);
         // Iterate through each date in the range fromDate to toDate
         LocalDate currentDateColumn = fromDate;
@@ -76,9 +81,11 @@ public class AllocationServiceImpl implements AllocationService {
         // Prepare final list with JSON format
         List<Map<String, Object>> data = new ArrayList<>();
         for (Worker worker : workers) {
-            Map<String, Object> row;
+            Map<String, Object> row = new HashMap<>();
+            Map<String, Object> workerMap;
             try {
-                row = entityToMap(worker);
+                workerMap = entityToMap(worker);
+                row.put("worker", workerMap);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
@@ -115,9 +122,40 @@ public class AllocationServiceImpl implements AllocationService {
         for (Field field : fields) {
             field.setAccessible(true); // Ensure private fields are accessible
             Object value = field.get(entity); // Get value of the field from the entity
-            map.put(field.getName(), value); // Put field name and its value into the map
+
+            // Check if the value is another entity (e.g., Join)
+            if (value != null && !isPrimitiveOrStringOrDate(value.getClass())) {
+                // If it's another entity, recursively convert it to a map
+                map.put(field.getName(), entityToMap(value));
+            } else {
+                // Otherwise, put field name and its value into the map
+                map.put(field.getName(), value);
+            }
         }
 
         return map;
+    }
+
+    // Helper method to check if a class is a primitive type or String
+    // Define a set of classes to check against
+    private static final Set<Class<?>> PRIMITIVE_AND_WRAPPER_TYPES = new HashSet<>();
+    static {
+        PRIMITIVE_AND_WRAPPER_TYPES.add(Boolean.class);
+        PRIMITIVE_AND_WRAPPER_TYPES.add(Character.class);
+        PRIMITIVE_AND_WRAPPER_TYPES.add(Byte.class);
+        PRIMITIVE_AND_WRAPPER_TYPES.add(Short.class);
+        PRIMITIVE_AND_WRAPPER_TYPES.add(Integer.class);
+        PRIMITIVE_AND_WRAPPER_TYPES.add(Long.class);
+        PRIMITIVE_AND_WRAPPER_TYPES.add(Float.class);
+        PRIMITIVE_AND_WRAPPER_TYPES.add(Double.class);
+        PRIMITIVE_AND_WRAPPER_TYPES.add(Void.class);
+        PRIMITIVE_AND_WRAPPER_TYPES.add(String.class);
+        PRIMITIVE_AND_WRAPPER_TYPES.add(Date.class);
+        PRIMITIVE_AND_WRAPPER_TYPES.add(BigDecimal.class);
+        PRIMITIVE_AND_WRAPPER_TYPES.add(BigInteger.class);
+    }
+
+    public static boolean isPrimitiveOrStringOrDate(Class<?> clazz) {
+        return clazz.isPrimitive() || PRIMITIVE_AND_WRAPPER_TYPES.contains(clazz);
     }
 }
