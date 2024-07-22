@@ -1,12 +1,14 @@
 package com.teguh.webSocketdemo.service;
 
 import com.teguh.webSocketdemo.persistance.model.Allocation;
+import com.teguh.webSocketdemo.persistance.model.Job;
 import com.teguh.webSocketdemo.persistance.model.Worker;
 import com.teguh.webSocketdemo.persistance.repo.AllocationRepository;
 import com.teguh.webSocketdemo.persistance.repo.WorkerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +29,7 @@ public class AllocationServiceImpl implements AllocationService {
         List<Worker> workers = workerRepository.findAll();
 
         // Create a map to store allocation data per worker
-        Map<Long, Map<String, List<Map<String, String>>>> workerAllocations = new HashMap<>();
+        Map<Long, Map<String, List<Map<String, Object>>>> workerAllocations = new HashMap<>();
 
         // Initialize worker allocations map with empty columns for each worker
         for (Worker worker : workers) {
@@ -37,16 +39,19 @@ public class AllocationServiceImpl implements AllocationService {
         // Populate worker allocations map with job references for each date
         for (Allocation allocation : allocations) {
             Long workerId = allocation.getWorker().getId();
-            String jobReference = allocation.getJob().getReferenceNo();
+            Job job = allocation.getJob();
             String dateKey = allocation.getDate().toString();
 
             // Retrieve or create the list of references for the specific date
-            List<Map<String, String>> references = workerAllocations.get(workerId).getOrDefault(dateKey, new ArrayList<>());
-            Map<String, String> referenceMap = new HashMap<>();
-            referenceMap.put("reference", jobReference);
-            references.add(referenceMap);
-
-            workerAllocations.get(workerId).put(dateKey, references);
+            List<Map<String, Object>> jobs = workerAllocations.get(workerId).getOrDefault(dateKey, new ArrayList<>());
+            Map<String, Object> jobMap;
+            try {
+                jobMap = entityToMap(job);
+                jobs.add(jobMap);
+                workerAllocations.get(workerId).put(dateKey, jobs);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         Map<String, Object> result = new HashMap<>();
@@ -71,9 +76,12 @@ public class AllocationServiceImpl implements AllocationService {
         // Prepare final list with JSON format
         List<Map<String, Object>> data = new ArrayList<>();
         for (Worker worker : workers) {
-            Map<String, Object> row = new HashMap<>();
-            row.put("id", worker.getId());
-            row.put("name", worker.getName());
+            Map<String, Object> row;
+            try {
+                row = entityToMap(worker);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
 
             // Iterate through each date in the range fromDate to toDate
             LocalDate currentDate = fromDate;
@@ -81,7 +89,7 @@ public class AllocationServiceImpl implements AllocationService {
                 String currentDateString = currentDate.toString();
 
                 // Add dynamic columns based on worker allocations
-                List<Map<String, String>> workerData = workerAllocations.get(worker.getId()).get(currentDateString);
+                List<Map<String, Object>> workerData = workerAllocations.get(worker.getId()).get(currentDateString);
                 row.put(currentDateString, workerData);
 
                 // Move to the next date
@@ -94,5 +102,22 @@ public class AllocationServiceImpl implements AllocationService {
         result.put("columns", columns);
 
         return result;
+    }
+
+    public static Map<String, Object> entityToMap(Object entity) throws IllegalAccessException {
+        Map<String, Object> map = new HashMap<>();
+        Class<?> clazz = entity.getClass();
+
+        // Get all declared fields of the class (including private ones)
+        Field[] fields = clazz.getDeclaredFields();
+
+        // Iterate through each field
+        for (Field field : fields) {
+            field.setAccessible(true); // Ensure private fields are accessible
+            Object value = field.get(entity); // Get value of the field from the entity
+            map.put(field.getName(), value); // Put field name and its value into the map
+        }
+
+        return map;
     }
 }
