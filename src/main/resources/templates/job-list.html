@@ -116,12 +116,12 @@
             <th>Transport Type</th>
             <th>Client</th>
             <th>Reference #</th>
-            <th>Date</th>
+<!--            <th>Date</th>-->
             <th style="width:25%">Pick-up Address</th>
             <th style="width:25%">Drop-off Address</th>
             <th style="width:7%;align-content: center">QTY</th>
             <th style="width:7%">Units</th>
-            <th>Worker</th>
+<!--            <th>Worker</th>-->
             <th>Status</th>
             <th>Action</th>
         </tr>
@@ -211,14 +211,14 @@
                 },
                 {data: "clientCode", defaultContent: "", className: 'text'},
                 {data: "referenceNo", defaultContent: "", className: 'text job'},
-                {
-                    data: "date", defaultContent: "", className: 'date',
-                    render: function (data) {
-                        if (!data) return null;
-                        // Assuming data is in "yyyy-mm-dd" format
-                        return moment(data).format('DD/MM/YYYY');
-                    }
-                },
+                // {
+                //     data: "date", defaultContent: "", className: 'date',
+                //     render: function (data) {
+                //         if (!data) return null;
+                //         // Assuming data is in "yyyy-mm-dd" format
+                //         return moment(data).format('DD/MM/YYYY');
+                //     }
+                // },
                 {data: "pickupAddress", defaultContent: "", className: 'address'},
                 {data: "dropOffAddress", defaultContent: "", className: 'address'},
                 {data: "qty", defaultContent: "", className: 'number'},
@@ -230,16 +230,16 @@
                         }
                     }
                 },
-                {
-                    data: "worker",
-                    defaultContent: "",
-                    className: 'worker-select',
-                    render: function (data) {
-                        if (data !== undefined && data !== null) {
-                            return data.name;
-                        }
-                    }
-                },
+                // {
+                //     data: "worker",
+                //     defaultContent: "",
+                //     className: 'worker-select',
+                //     render: function (data) {
+                //         if (data !== undefined && data !== null) {
+                //             return data.name;
+                //         }
+                //     }
+                // },
                 {
                     data: "status", defaultContent: "", className: 'status-select',
                     render: function (data) {
@@ -716,9 +716,9 @@
                     // Revert sorting
                     ui.sender.sortable( "cancel" );
                     alert('Job ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + ' already exists for this worker.');
+                } else {
+                    saveAllocations(this_, worker, date);
                 }
-
-                saveAllocations(this_, worker, date);
             }
         }).disableSelection();
     }
@@ -741,7 +741,6 @@
             allocations.push(allocation);
         });
 
-        console.log(allocations);
         this_.sortable("disable");
         // Perform AJAX call to save allocation data to server
         $.ajax({
@@ -751,7 +750,6 @@
             contentType: "application/json",
             data: JSON.stringify({"socketId": socketId, "dataList": allocations}),
             success: function (data) {
-                console.log(data);
                 this_.empty();
                 data.forEach(function(item) {
                     this_.append(createAllocationElement(item));
