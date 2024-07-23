@@ -259,7 +259,7 @@
             createdRow: function(row, data, dataIndex) {
                 var job = btoa(JSON.stringify(data))
 
-                // Example: Adding data-job to the second cell (index 1) in each row
+                // Adding data-job to the second cell (index 1) in each row
                 $(row).find('td').attr('data-job', job);
             },
             initComplete: function() {
@@ -464,6 +464,10 @@
                             idCell.data(data.id);
                             idCell.invalidate();
                         }
+                        var job = btoa(JSON.stringify(data))
+
+                        // Adding data-job to the second cell (index 1) in each row
+                        trElement.find('td').attr('data-job', job);
                     },
                     error: function (xhr, status, error) {
                         alert(error.message);
