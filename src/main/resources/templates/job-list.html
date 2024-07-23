@@ -286,7 +286,7 @@
                     method: 'DELETE',
                     dataType: 'text',
                     contentType: "application/json",
-                    data: JSON.stringify({"socketId": socketId, "job": {"id": id}}),
+                    data: JSON.stringify({"socketId": socketId, "data": {"id": id}}),
                     success: function () {
                         console.log("Data has been deleted");
                         reloadDataAndReinitialize();
@@ -454,7 +454,7 @@
                     method: 'POST',
                     dataType: 'json',
                     contentType: 'application/json',
-                    data: JSON.stringify({"socketId": socketId, "job": rowData}),
+                    data: JSON.stringify({"socketId": socketId, "data": rowData}),
                     success: function (data) {
                         console.log('Data updated');
                         //If id null, get from response
@@ -618,7 +618,7 @@
                                 // Add date attribute with the index
                                 $(element).attr('date', date);
                                 // Add worker attribute with the index
-                                $(element).attr('worker', worker);
+                                $(element).attr('data-worker', worker);
                             });
                         }
                     });
@@ -656,7 +656,7 @@
                 var job = JSON.parse(atob(ui.helper.data('job')));
                 var jobId = job.id;
                 var jobRef = job.referenceNo;
-                var worker = JSON.parse($(this).data('worker'));
+                var worker = JSON.parse(atob($(this).data('worker')));
                 var workerId = worker.id;
                 var date = $(this).data('date');
                 var isFromJobTable = $(ui.helper).hasClass('from-job-table');
@@ -684,7 +684,7 @@
                 var job = JSON.parse(atob(ui.item.data('job')));
                 var jobId = job.id;
                 var jobRef = job.referenceNo;
-                var worker = JSON.parse($(this).data('worker'));
+                var worker = JSON.parse(atob($(this).data('worker')));
                 var workerId = worker.id;
                 var date = $(this).data('date');
                 if ($(this).find('.job[data-job-id="' + jobId + '"]').length > 1) {

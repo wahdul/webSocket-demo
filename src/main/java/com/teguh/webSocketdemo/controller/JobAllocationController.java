@@ -11,7 +11,7 @@ import com.teguh.webSocketdemo.persistance.model.Status;
 import com.teguh.webSocketdemo.persistance.model.TransportType;
 import com.teguh.webSocketdemo.persistance.model.Unit;
 import com.teguh.webSocketdemo.util.dto.DataTableResponseDTO;
-import com.teguh.webSocketdemo.util.dto.JobRequestDTO;
+import com.teguh.webSocketdemo.util.dto.RequestDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,8 +32,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.modelmapper.ModelMapper;
+
 @Controller
-public class JobController {
+public class JobAllocationController {
 
     @Autowired
     private JobService jobService;
@@ -54,6 +56,8 @@ public class JobController {
     public String jobList(Model model) {
         return "job-list";
     }
+
+    private ModelMapper modelMapper = new ModelMapper();
 
     @GetMapping("/api/jobData")
     @ResponseBody
@@ -111,8 +115,8 @@ public class JobController {
 
     @PostMapping("/api/jobData")
     @ResponseBody
-    public Job saveJob(@RequestBody JobRequestDTO requestDTO) {
-        Job job = requestDTO.getJob();
+    public Job saveJob(@RequestBody RequestDTO requestDTO) {
+        Job job = modelMapper.map(requestDTO.getData(), Job.class);
         jobService.saveJob(job);
         webSocketService.sendMessage("/topic/job", requestDTO.getSocketId());
         return job;
@@ -120,8 +124,8 @@ public class JobController {
 
     @DeleteMapping("/api/jobData")
     @ResponseBody
-    public void deleteJob(@RequestBody JobRequestDTO requestDTO) {
-        Job job = requestDTO.getJob();
+    public void deleteJob(@RequestBody RequestDTO requestDTO) {
+        Job job = modelMapper.map(requestDTO.getData(), Job.class);
         job.setDeleted(new Date());//Soft Delete
         jobService.saveJob(job);
         webSocketService.sendMessage("/topic/job", requestDTO.getSocketId());
@@ -129,8 +133,8 @@ public class JobController {
 
     @PostMapping("/api/reorderJobData")
     @ResponseBody
-    public void reorderJobData(@RequestBody JobRequestDTO requestDTO) {
-        jobService.reorderJobData(requestDTO.getJobList());
+    public void reorderJobData(@RequestBody RequestDTO requestDTO) {
+        jobService.reorderJobData(requestDTO.getDataList());
         webSocketService.sendMessage("/topic/job", requestDTO.getSocketId());
     }
 
@@ -170,4 +174,14 @@ public class JobController {
         Map<String, Object> allocationMapList = allocationService.getAllocationData(fromDate, toDate);
         return ResponseEntity.ok(allocationMapList);
     }
+
+    @PostMapping("/api/allocationData")
+    @ResponseBody
+    public Job saveAllocation(@RequestBody RequestDTO requestDTO) {
+        Job job = modelMapper.map(requestDTO.getData(), Job.class);
+        jobService.saveJob(job);
+        webSocketService.sendMessage("/topic/job", requestDTO.getSocketId());
+        return job;
+    }
+
 }
