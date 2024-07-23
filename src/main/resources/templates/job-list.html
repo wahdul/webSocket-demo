@@ -704,8 +704,7 @@
             tolerance: 'pointer',
             dropOnEmpty: true,
             revert: true, // Items will revert to their original position if not dropped onto a valid sortable target
-            update: function(event, ui) {
-                console.log('allocations');
+            receive: function(event, ui) {
                 var this_ = $(this);
                 var allocation = JSON.parse(atob(ui.item.data('allocation')));
                 var jobId = allocation.job.id;
