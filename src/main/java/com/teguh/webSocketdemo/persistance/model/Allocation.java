@@ -28,7 +28,7 @@ public class Allocation {
     private LocalDate date;
 
     @Column
-    private Integer order;
+    private Integer index;
 
     // Getters and setters
 
@@ -64,12 +64,12 @@ public class Allocation {
         this.date = date;
     }
 
-    public Integer getOrder() {
-        return order;
+    public Integer getIndex() {
+        return index;
     }
 
-    public void setOrder(Integer order) {
-        this.order = order;
+    public void setIndex(Integer index) {
+        this.index = index;
     }
 }
 

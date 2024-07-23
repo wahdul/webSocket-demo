@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface AllocationRepository extends JpaRepository<Allocation, Long> {
-    List<Allocation> findByDateBetween(LocalDate fromDate, LocalDate toDate);
+    List<Allocation> findByDateBetweenOrderByIndexAsc(LocalDate fromDate, LocalDate toDate);
 }

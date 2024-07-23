@@ -1,7 +1,6 @@
 package com.teguh.webSocketdemo.service;
 
 import com.teguh.webSocketdemo.persistance.model.Allocation;
-import com.teguh.webSocketdemo.persistance.model.Job;
 import com.teguh.webSocketdemo.persistance.model.Worker;
 import com.teguh.webSocketdemo.persistance.repo.AllocationRepository;
 import com.teguh.webSocketdemo.persistance.repo.WorkerRepository;
@@ -30,7 +29,7 @@ public class AllocationServiceImpl implements AllocationService {
 
     @Override
     public Map<String, Object> getAllocationData(LocalDate fromDate, LocalDate toDate) {
-        List<Allocation> allocations = allocationRepository.findByDateBetween(fromDate, toDate);
+        List<Allocation> allocations = allocationRepository.findByDateBetweenOrderByIndexAsc(fromDate, toDate);
         List<Worker> workers = workerRepository.findAll();
 
         // Create a map to store allocation data per worker
@@ -111,8 +110,8 @@ public class AllocationServiceImpl implements AllocationService {
     }
 
     @Override
-    public void saveAllocation(Allocation allocation) {
-        allocationRepository.save(allocation);
+    public void saveAllocation(List<Allocation> allocations) {
+        allocationRepository.saveAll(allocations);
     }
 
     public static Map<String, Object> entityToMap(Object entity) throws IllegalAccessException {
@@ -157,6 +156,7 @@ public class AllocationServiceImpl implements AllocationService {
         PRIMITIVE_AND_WRAPPER_TYPES.add(Date.class);
         PRIMITIVE_AND_WRAPPER_TYPES.add(BigDecimal.class);
         PRIMITIVE_AND_WRAPPER_TYPES.add(BigInteger.class);
+        PRIMITIVE_AND_WRAPPER_TYPES.add(LocalDate.class);
     }
 
     public static boolean isPrimitiveOrStringOrDate(Class<?> clazz) {

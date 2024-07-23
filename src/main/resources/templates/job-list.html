@@ -47,7 +47,7 @@
             min-height: 50px;
             position: relative;
         }
-        .job {
+        .job, .allocation {
             background-color: #4CAF50;
             color: white;
             padding: 5px;
@@ -616,11 +616,28 @@
                                 $(element).addClass('worker-cell');
                                 var date = d.columns[index + 1].title;
                                 // Add date attribute with the index
-                                $(element).attr('date', date);
+                                $(element).attr('data-date', date);
                                 // Add worker attribute with the index
                                 $(element).attr('data-worker', worker);
                             });
-                        }
+                        },
+                        columnDefs: [
+                            {
+                                targets: '_all', // Target all columns
+                                render: function(data, type, row, meta) {
+                                    if (data instanceof Array) {
+                                        var html = '';
+                                        data.forEach(function(item) {
+                                            html += createAllocationElement(item);
+                                        });
+                                        return html;
+                                    }
+                                    // Customize the rendering of each cell here
+                                    return data; // Return the data to display
+                                }
+                                // Add other configurations as needed
+                            }
+                        ]
                     });
                 } else {
                     allocationJob.clear().rows.add(d.data).draw();
@@ -643,28 +660,35 @@
             },
         });
 
-        // Make worker cells droppable
+        // // Make worker cells droppable
         $('.worker-cell').droppable({
-            //accept: '.job',
+            // accept: '.job',
             accept: function(draggable) {
-                var job = JSON.parse(atob($(draggable).data('job')));
-                // Example condition to accept only certain jobs
-                var draggableJobId = job.id;
-                return !$(this).find('.job[data-job-id="' + draggableJobId + '"]').length;
+                var draggableJobId = $(draggable).data('job-id');
+                return !$(this).find('.allocation[data-job-id="' + draggableJobId + '"]').length;
             },
             drop: function(event, ui) {
-                var job = JSON.parse(atob(ui.helper.data('job')));
+                var this_ = $(this);
+                var job;
+                var jobData = ui.helper.data('job');
+                if (jobData !== undefined) {
+                    job = JSON.parse(atob(jobData));
+                }
+                var allocationData = ui.helper.data('allocation');
+                if (allocationData !== undefined) {
+                    var allocation = JSON.parse(atob(allocationData));
+                    job = allocation.job;
+                }
                 var jobId = job.id;
                 var jobRef = job.referenceNo;
-                var worker = JSON.parse(atob($(this).data('worker')));
-                var workerId = worker.id;
-                var date = $(this).data('date');
+                var worker = JSON.parse(atob(this_.data('worker')));
+                var date = this_.data('date');
                 var isFromJobTable = $(ui.helper).hasClass('from-job-table');
                 // Check if the job with jobId already exists in this worker cell
-                if (isFromJobTable && !$(this).find('.job[data-job-id="' + jobId + '"]').length) {
-                    $(this).append('<div class="job" data-job-id="' + jobId + '" data-job="' + btoa(JSON.stringify(job)) + '"> ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + '</div>');
+                if (isFromJobTable && !this_.find('.allocation[data-job-id="' + jobId + '"]').length) {
+                    this_.append(createAllocationElement({date: date, worker: worker, job: job}));
 
-                    // Here you can implement logic to manage job priority for the worker on the given date
+                    saveAllocations(this_, worker, date);
                 } else {
                     console.log('Job ' + jobId + ' already exists for this worker.');
                 }
@@ -673,27 +697,28 @@
 
         // Make jobs within worker table draggable and sortable
         $('.worker-cell').sortable({
-            items: '.job',
+            items: '.allocation',
             connectWith: '.worker-cell',
             placeholder: 'job-placeholder',
             forcePlaceholderSize: true,
             tolerance: 'pointer',
             dropOnEmpty: true,
             revert: true, // Items will revert to their original position if not dropped onto a valid sortable target
-            receive: function(event, ui) {
-                var job = JSON.parse(atob(ui.item.data('job')));
-                var jobId = job.id;
-                var jobRef = job.referenceNo;
-                var worker = JSON.parse(atob($(this).data('worker')));
-                var workerId = worker.id;
-                var date = $(this).data('date');
-                if ($(this).find('.job[data-job-id="' + jobId + '"]').length > 1) {
+            update: function(event, ui) {
+                console.log('allocations');
+                var this_ = $(this);
+                var allocation = JSON.parse(atob(ui.item.data('allocation')));
+                var jobId = allocation.job.id;
+                var jobRef = allocation.job.referenceNo;
+                var worker = JSON.parse(atob(this_.data('worker')));
+                var date = this_.data('date');
+                if (this_.find('.allocation[data-job-id="' + jobId + '"]').length > 1) {
                     // Revert sorting
                     ui.sender.sortable( "cancel" );
                     alert('Job ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + ' already exists for this worker.');
                 }
 
-                // Implement logic to handle job re-allocation within the worker's schedule
+                saveAllocations(this_, worker, date);
             }
         }).disableSelection();
     }
@@ -703,6 +728,46 @@
             // Callback function after data reload is complete
             initializeUIFeatures(); // Reinitialize UI features after DataTable reload
         });
+    }
+
+    function saveAllocations(this_, worker, date) {
+
+        var allocations = [];
+        this_.find('.allocation').each(function (index, element) {
+            var allocation = JSON.parse(atob($(element).data('allocation')));
+            allocation['index'] = index;
+            allocation['worker'] = worker;
+            allocation['date'] = date;
+            allocations.push(allocation);
+        });
+
+        console.log(allocations);
+        this_.sortable("disable");
+        // Perform AJAX call to save allocation data to server
+        $.ajax({
+            url: '/api/allocationsData',
+            method: 'POST',
+            dataType: 'json',
+            contentType: "application/json",
+            data: JSON.stringify({"socketId": socketId, "dataList": allocations}),
+            success: function (data) {
+                console.log(data);
+                this_.empty();
+                data.forEach(function(item) {
+                    this_.append(createAllocationElement(item));
+                });
+                this_.sortable("enable");
+            },
+            error: function (xhr, status, error) {
+                alert(error.message)
+            }
+        });
+    }
+
+    function createAllocationElement(allocation) {
+        var jobId = allocation.job.id;
+        var jobRef = allocation.job.referenceNo;
+        return '<div class="allocation" data-job-id="' + jobId + '" data-allocation="' + btoa(JSON.stringify(allocation)) + '"> ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + '</div>'
     }
 </script>
 </body>

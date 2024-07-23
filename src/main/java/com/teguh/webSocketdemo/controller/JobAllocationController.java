@@ -13,6 +13,9 @@ import com.teguh.webSocketdemo.persistance.model.TransportType;
 import com.teguh.webSocketdemo.persistance.model.Unit;
 import com.teguh.webSocketdemo.util.dto.DataTableResponseDTO;
 import com.teguh.webSocketdemo.util.dto.RequestDTO;
+import org.modelmapper.AbstractConverter;
+import org.modelmapper.Converter;
+import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -59,6 +63,17 @@ public class JobAllocationController {
     }
 
     private ModelMapper modelMapper = new ModelMapper();
+
+    public JobAllocationController() {
+        modelMapper = new ModelMapper();
+
+        // Configure mappings
+        modelMapper.getConfiguration()
+                .setMatchingStrategy(MatchingStrategies.STRICT); // Optional: set matching strategy
+
+        // Configure the conversion from String to Date
+        modelMapper.addConverter(stringToLocalDateConverter);
+    }
 
     @GetMapping("/api/jobData")
     @ResponseBody
@@ -176,13 +191,27 @@ public class JobAllocationController {
         return ResponseEntity.ok(allocationMapList);
     }
 
-    @PostMapping("/api/allocationData")
+    @PostMapping("/api/allocationsData")
     @ResponseBody
-    public Allocation saveAllocation(@RequestBody RequestDTO requestDTO) {
-        Allocation allocation = modelMapper.map(requestDTO.getData(), Allocation.class);
-        allocationService.saveAllocation(allocation);
+    public List<Allocation> saveAllocation(@RequestBody RequestDTO requestDTO) {
+        List<Allocation> allocationList = new ArrayList<>();
+        for(Object obj : requestDTO.getDataList()) {
+            allocationList.add(modelMapper.map(obj, Allocation.class));
+        }
+        allocationService.saveAllocation(allocationList);
         webSocketService.sendMessage("/topic/job", requestDTO.getSocketId());
-        return allocation;
+        return allocationList;
     }
+
+    // Converter from String to LocalDate
+    Converter<String, LocalDate> stringToLocalDateConverter = new AbstractConverter<String, LocalDate>() {
+        @Override
+        protected LocalDate convert(String source) {
+            // Implement custom LocalDate parsing logic here
+            // Example: parsing a date in ISO-8601 format (yyyy-MM-dd)
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            return LocalDate.parse(source, formatter);
+        }
+    };
 
 }
