@@ -110,6 +110,11 @@ public class AllocationServiceImpl implements AllocationService {
         return result;
     }
 
+    @Override
+    public void saveAllocation(Allocation allocation) {
+        allocationRepository.save(allocation);
+    }
+
     public static Map<String, Object> entityToMap(Object entity) throws IllegalAccessException {
         Map<String, Object> map = new HashMap<>();
         Class<?> clazz = entity.getClass();

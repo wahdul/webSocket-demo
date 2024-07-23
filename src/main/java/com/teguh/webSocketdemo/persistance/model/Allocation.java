@@ -27,6 +27,9 @@ public class Allocation {
     @Column(nullable = false)
     private LocalDate date;
 
+    @Column
+    private Integer order;
+
     // Getters and setters
 
     public Long getId() {
@@ -59,6 +62,14 @@ public class Allocation {
 
     public void setDate(LocalDate date) {
         this.date = date;
+    }
+
+    public Integer getOrder() {
+        return order;
+    }
+
+    public void setOrder(Integer order) {
+        this.order = order;
     }
 }
 

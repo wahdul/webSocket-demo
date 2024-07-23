@@ -1,5 +1,6 @@
 package com.teguh.webSocketdemo.controller;
 
+import com.teguh.webSocketdemo.persistance.model.Allocation;
 import com.teguh.webSocketdemo.persistance.model.Job;
 import com.teguh.webSocketdemo.persistance.model.Worker;
 import com.teguh.webSocketdemo.service.AllocationService;
@@ -177,11 +178,11 @@ public class JobAllocationController {
 
     @PostMapping("/api/allocationData")
     @ResponseBody
-    public Job saveAllocation(@RequestBody RequestDTO requestDTO) {
-        Job job = modelMapper.map(requestDTO.getData(), Job.class);
-        jobService.saveJob(job);
+    public Allocation saveAllocation(@RequestBody RequestDTO requestDTO) {
+        Allocation allocation = modelMapper.map(requestDTO.getData(), Allocation.class);
+        allocationService.saveAllocation(allocation);
         webSocketService.sendMessage("/topic/job", requestDTO.getSocketId());
-        return job;
+        return allocation;
     }
 
 }
