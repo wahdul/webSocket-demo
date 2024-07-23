@@ -44,16 +44,15 @@ public class AllocationServiceImpl implements AllocationService {
         // Populate worker allocations map with job references for each date
         for (Allocation allocation : allocations) {
             Long workerId = allocation.getWorker().getId();
-            Job job = allocation.getJob();
             String dateKey = allocation.getDate().toString();
 
             // Retrieve or create the list of references for the specific date
-            List<Map<String, Object>> jobs = workerAllocations.get(workerId).getOrDefault(dateKey, new ArrayList<>());
-            Map<String, Object> jobMap;
+            List<Map<String, Object>> allocationList = workerAllocations.get(workerId).getOrDefault(dateKey, new ArrayList<>());
+            Map<String, Object> allocationMap;
             try {
-                jobMap = entityToMap(job);
-                jobs.add(jobMap);
-                workerAllocations.get(workerId).put(dateKey, jobs);
+                allocationMap = entityToMap(allocation);
+                allocationList.add(allocationMap);
+                workerAllocations.get(workerId).put(dateKey, allocationList);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }

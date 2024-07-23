@@ -611,13 +611,14 @@
                         columns: d.columns,
                         createdRow: function (row, data, dataIndex) {
                             var worker = btoa(JSON.stringify(data.worker));
-                            // Add worker-cell class to all cells in each row except the first one
-                            $(row).find('td:not(:first-child)').addClass('worker-cell');
-                            $(row).find('td').attr('worker', worker);
                             $(row).find('td:not(:first-child)').each(function (index, element) {
+                                // Add worker-cell class to all cells in each row except the first one
+                                $(element).addClass('worker-cell');
                                 var date = d.columns[index + 1].title;
-                                // Example: Add an attribute with the index
+                                // Add date attribute with the index
                                 $(element).attr('date', date);
+                                // Add worker attribute with the index
+                                $(element).attr('worker', worker);
                             });
                         }
                     });
@@ -655,7 +656,8 @@
                 var job = JSON.parse(atob(ui.helper.data('job')));
                 var jobId = job.id;
                 var jobRef = job.referenceNo;
-                var workerId = $(this).data('worker-id');
+                var worker = JSON.parse($(this).data('worker'));
+                var workerId = worker.id;
                 var date = $(this).data('date');
                 var isFromJobTable = $(ui.helper).hasClass('from-job-table');
                 // Check if the job with jobId already exists in this worker cell
@@ -682,7 +684,8 @@
                 var job = JSON.parse(atob(ui.item.data('job')));
                 var jobId = job.id;
                 var jobRef = job.referenceNo;
-                var workerId = $(this).data('worker-id');
+                var worker = JSON.parse($(this).data('worker'));
+                var workerId = worker.id;
                 var date = $(this).data('date');
                 if ($(this).find('.job[data-job-id="' + jobId + '"]').length > 1) {
                     // Revert sorting
