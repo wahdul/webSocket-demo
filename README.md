@@ -45,7 +45,7 @@ How to Use:
 5.	In a cell with an address autocomplete selected, begin typing the address. As you type, a dropdown list of suggested addresses will appear. Use the arrow keys to navigate through the options. Press the 'Enter' key to select an address option. If needed, confirm the selection before proceeding.
 6.	Navigate away from the cell or click outside it to save changes. Alternatively, press the 'Esc' key to discard changes.
 7.	To delete a record, click on the "Delete" button in the corresponding row.
-8.	You can easily rearrange rows in the table by clicking and dragging them. Simply click on the row you want to move, hold down your mouse button, and then drag it to the new position. Once you release the mouse button, the row will be dropped into place.
+8.	You can easily assign a job to a worker, switch jobs between workers on different days, or arrange the priority of workers within a single day by clicking and dragging them. Simply click on the job reference number you want to move, hold down your mouse button, and drag it to the job schedule table. Release the mouse button to drop the job into place.
 
 Contributors:
 1.	Teguh Adi Sumantri
