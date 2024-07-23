@@ -708,21 +708,8 @@
             tolerance: 'pointer',
             dropOnEmpty: true,
             revert: true, // Items will revert to their original position if not dropped onto a valid sortable target
-            receive: function(event, ui) {
-                var this_ = $(this);
-                var allocation = JSON.parse(atob(ui.item.data('allocation')));
-                var jobId = allocation.job.id;
-                var jobRef = allocation.job.referenceNo;
-                var worker = JSON.parse(atob(this_.data('worker')));
-                var date = this_.data('date');
-                if (this_.find('.allocation[data-job-id="' + jobId + '"]').length > 1) {
-                    // Revert sorting
-                    ui.sender.sortable( "cancel" );
-                    alert('Job ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + ' already exists for this worker.');
-                } else {
-                    saveAllocations(this_, worker, date);
-                }
-            }
+            stop: handleSortAndReceive,
+            receive: handleSortAndReceive
         }).disableSelection();
     }
 
@@ -769,6 +756,25 @@
         var jobId = allocation.job.id;
         var jobRef = allocation.job.referenceNo;
         return '<div class="allocation" data-job-id="' + jobId + '" data-allocation="' + btoa(JSON.stringify(allocation)) + '"> ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + '</div>'
+    }
+
+    function handleSortAndReceive(event, ui) {
+        // Handle sorting update
+        event.stopPropagation(); // Prevent event propagation if necessary
+        var this_ = $(this);
+        var allocation = JSON.parse(atob(ui.item.data('allocation')));
+        var jobId = allocation.job.id;
+        var jobRef = allocation.job.referenceNo;
+        var worker = JSON.parse(atob(this_.data('worker')));
+        var date = this_.data('date');
+        console.log(this_.find('.allocation[data-job-id="' + jobId + '"]').length);
+        if (this_.find('.allocation[data-job-id="' + jobId + '"]').length > 1) {
+            // Revert sorting
+            ui.sender.sortable( "cancel" );
+            alert('Job ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + ' already exists for this worker.');
+        } else {
+            saveAllocations(this_, worker, date);
+        }
     }
 </script>
 </body>
