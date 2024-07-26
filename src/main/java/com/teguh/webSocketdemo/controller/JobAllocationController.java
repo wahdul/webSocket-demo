@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -88,6 +89,16 @@ public class JobAllocationController {
 
         // Create Pageable instance for pagination and sorting
         Pageable pageable = PageRequest.of(pageNumber, length);
+
+        if (queryMap.containsKey("order[0][column]") && queryMap.containsKey("order[0][dir]")) {
+            String sortBy = queryMap.get("columns[" + queryMap.get("order[0][column]") + "][data]");
+            String sortDir = queryMap.get("order[0][dir]");
+
+            Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+
+            // Create Pageable instance for pagination and sorting
+            pageable = PageRequest.of(pageNumber, length, sort);
+        }
 
         // Fetch data from database
         Page<Job> jobPage;

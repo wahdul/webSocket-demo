@@ -18,7 +18,7 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Page<Job> getAllJob(Pageable pageable) {
-        return jobRepository.findAllByDeletedIsNullOrderByOrderNumber(pageable);
+        return jobRepository.findAllByDeletedIsNull(pageable);
     }
 
     @Override
@@ -36,7 +36,7 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Page<Job> findBySearchTerm(String searchValue, Pageable pageable) {
-        return jobRepository.findByClientCodeContainingIgnoreCaseOrReferenceNoContainingIgnoreCaseOrPickupAddressContainingIgnoreCaseOrDropOffAddressContainingIgnoreCaseAndDeletedIsNullOrderByOrderNumber(searchValue, searchValue, searchValue, searchValue, pageable);
+        return jobRepository.findByClientCodeContainingIgnoreCaseOrReferenceNoContainingIgnoreCaseOrPickupAddressContainingIgnoreCaseOrDropOffAddressContainingIgnoreCaseAndDeletedIsNull(searchValue, searchValue, searchValue, searchValue, pageable);
     }
 
     @Override

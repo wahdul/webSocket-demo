@@ -10,8 +10,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface JobRepository extends JpaRepository<Job, Long> {
     int countAllByDeletedIsNull();
-    Page<Job> findAllByDeletedIsNullOrderByOrderNumber(Pageable pageable);
-    Page<Job> findByClientCodeContainingIgnoreCaseOrReferenceNoContainingIgnoreCaseOrPickupAddressContainingIgnoreCaseOrDropOffAddressContainingIgnoreCaseAndDeletedIsNullOrderByOrderNumber(String cc, String ref, String pa, String da, Pageable pageable);
+    Page<Job> findAllByDeletedIsNull(Pageable pageable);
+    Page<Job> findByClientCodeContainingIgnoreCaseOrReferenceNoContainingIgnoreCaseOrPickupAddressContainingIgnoreCaseOrDropOffAddressContainingIgnoreCaseAndDeletedIsNull(String cc, String ref, String pa, String da, Pageable pageable);
 
     @Modifying
     @Query("UPDATE Job e SET e.orderNumber = :orderNumber WHERE e.id = :id AND e.deleted IS NULL")

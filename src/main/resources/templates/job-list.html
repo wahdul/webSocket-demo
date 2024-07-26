@@ -656,6 +656,7 @@
                         paging: false,      // Disable pagination
                         searching: false,   // Disable search input
                         info: false,        // Optionally, disable the table info (e.g., "Showing 1 to 10 of 57 entries")
+                        ordering: false,    // Disable sorting for the entire table
                         createdRow: function (row, data, dataIndex) {
                             var worker = btoa(JSON.stringify(data.worker));
                             $(row).find('td:not(:first-child)').each(function (index, element) {
