@@ -29,7 +29,7 @@ public class AllocationServiceImpl implements AllocationService {
 
     @Override
     public Map<String, Object> getAllocationData(LocalDate fromDate, LocalDate toDate) {
-        List<Allocation> allocations = allocationRepository.findByDateBetweenOrderByIndexAsc(fromDate, toDate);
+        List<Allocation> allocations = allocationRepository.findByDateBetweenAndJob_DeletedIsNullOrderByIndexAsc(fromDate, toDate);
         List<Worker> workers = workerRepository.findAll();
 
         // Create a map to store allocation data per worker
@@ -112,6 +112,11 @@ public class AllocationServiceImpl implements AllocationService {
     @Override
     public void saveAllocation(List<Allocation> allocations) {
         allocationRepository.saveAll(allocations);
+    }
+
+    @Override
+    public void deleteAllocation(Allocation allocation) {
+        allocationRepository.delete(allocation);
     }
 
     public static Map<String, Object> entityToMap(Object entity) throws IllegalAccessException {

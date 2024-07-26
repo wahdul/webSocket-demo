@@ -174,13 +174,6 @@ public class JobAllocationController {
 
     @GetMapping("/api/allocations")
     public ResponseEntity<Map<String, Object>> getJobs() {
-
-//        Worker worker = null;
-//        if (workerId != null) {
-//            // Fetch worker from database
-//            worker = workerService.findById(workerId);
-//        }
-
         // Calculate fromDate as today
         LocalDate fromDate = LocalDate.now();
 
@@ -201,6 +194,15 @@ public class JobAllocationController {
         allocationService.saveAllocation(allocationList);
         webSocketService.sendMessage("/topic/job", requestDTO.getSocketId());
         return allocationList;
+    }
+
+    @DeleteMapping("/api/allocationsData")
+    @ResponseBody
+    public Allocation deleteAllocation(@RequestBody RequestDTO requestDTO) {
+        Allocation allocation = modelMapper.map(requestDTO.getData(), Allocation.class);
+        allocationService.deleteAllocation(allocation);
+        webSocketService.sendMessage("/topic/job", requestDTO.getSocketId());
+        return allocation;
     }
 
     // Converter from String to LocalDate

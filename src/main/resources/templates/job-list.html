@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="/css/bootstrap/4.5.2/bootstrap.min.css">
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="/css/datatables.net/1.11.5/jquery.dataTables.css">
+    <!-- Fontawesome -->
+    <link rel="stylesheet" href="/css/fontawesome/all.min.css">
     <!-- Custom CSS -->
     <style>
         body {
@@ -47,14 +49,44 @@
             min-height: 50px;
             position: relative;
         }
-        .job, .allocation {
-            background-color: #4CAF50;
-            color: white;
+        .job {
+            background-color: #f9f9f9;
             padding: 5px;
             margin: 5px 0;
             cursor: move;
             z-index: 9999;
             min-height: 50px;
+        }
+        .allocation {
+            cursor: move;
+            min-height: 50px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .delete-icon {
+            color: red;
+            font-size: 25px;
+            cursor: hand;
+        }
+        .allocation:hover {
+            background-color: #eaeaea;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .allocation div {
+            margin-bottom: 10px;
+        }
+        .delete-icon {
+            cursor: pointer;
+            color: #dc3545;
+        }
+        .delete-icon:hover {
+            color: #c82333;
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyApg-WC0f4YH1B3m1BG4HEPwlke287Hl6s&libraries=places"></script>
@@ -191,6 +223,10 @@
         buildAllocationTable();
     }
 
+    function deleteAllocation(jobId) {
+        $('.allocation[data-job-id="' + jobId + '"]').remove();
+    }
+
     $(document).ready(function () {
         connect(false);
         jobTable = $('#myTable').DataTable({
@@ -261,11 +297,13 @@
 
                 // Adding data-job to the second cell (index 1) in each row
                 $(row).find('td').attr('data-job', job);
-            },
-            initComplete: function() {
-                initializeUIFeatures();
             }
         });
+
+        jobTable.on('draw', function() {
+            initializeUIFeatures();
+        });
+
         // Get the number of columns
         var numColumns = jobTable.columns().count();
 
@@ -290,6 +328,7 @@
                     success: function () {
                         console.log("Data has been deleted");
                         reloadDataAndReinitialize();
+                        deleteAllocation(id);
                     },
                     error: function (xhr, status, error) {
                         alert(error.message)
@@ -468,6 +507,7 @@
 
                         // Adding data-job to the second cell (index 1) in each row
                         trElement.find('td').attr('data-job', job);
+                        buildAllocationTable();
                     },
                     error: function (xhr, status, error) {
                         alert(error.message);
@@ -613,6 +653,9 @@
                     allocationJob = $('#allocationTable').DataTable({
                         data: d.data,
                         columns: d.columns,
+                        paging: false,      // Disable pagination
+                        searching: false,   // Disable search input
+                        info: false,        // Optionally, disable the table info (e.g., "Showing 1 to 10 of 57 entries")
                         createdRow: function (row, data, dataIndex) {
                             var worker = btoa(JSON.stringify(data.worker));
                             $(row).find('td:not(:first-child)').each(function (index, element) {
@@ -694,7 +737,7 @@
 
                     saveAllocations(this_, worker, date);
                 } else {
-                    console.log('Job ' + jobId + ' already exists for this worker.');
+                    alert('Job already allocated for this worker.');
                 }
             }
         });
@@ -753,9 +796,29 @@
     }
 
     function createAllocationElement(allocation) {
-        var jobId = allocation.job.id;
-        var jobRef = allocation.job.referenceNo;
-        return '<div class="allocation" data-job-id="' + jobId + '" data-allocation="' + btoa(JSON.stringify(allocation)) + '"> ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + '</div>'
+        var job = allocation?.job
+        var jobId = job?.id ?? '';
+        var jobRef = job?.referenceNo ?? '';
+        var transportType = job?.transportType?.label ?? '';
+        var clientCode = job?.clientCode ?? '';
+        var status = job?.status?.label ?? '';
+        var html = '<div class="container">\n' +
+            '    <div class="allocation ui-sortable-handle" data-job-id="{jobId}" data-allocation="{allocation}">\n' +
+            '      <div class="d-flex justify-content-between align-items-center">\n' +
+            '        <span>{jobRef}</span>\n' +
+            '        <i class="fas fa-solid fa-square-xmark delete-icon" onclick="deleteAllocation(this)"></i>\n' +
+            '      </div>\n' +
+            '      <div>{transportType}</div>\n' +
+            '      <div>{clientCode}</div>\n' +
+            '      <div>{status}</div>\n' +
+            '    </div>\n' +
+            '  </div>';
+        return html.replace('{jobId}', jobId)
+                .replace('{allocation}', btoa(JSON.stringify(allocation)))
+                .replace('{jobRef}', (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef))
+                .replace('{transportType}', transportType)
+                .replace('{clientCode}', clientCode)
+                .replace('{status}', status);
     }
 
     function handleSortAndReceive(event, ui) {
@@ -771,9 +834,29 @@
         if (this_.find('.allocation[data-job-id="' + jobId + '"]').length > 1) {
             // Revert sorting
             ui.sender.sortable( "cancel" );
-            alert('Job ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + ' already exists for this worker.');
+            alert('Job ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + ' already allocated for this worker.');
         } else {
             saveAllocations(this_, worker, date);
+        }
+    }
+
+    function deleteAllocation(this_) {
+        var allocationElement = $(this_).closest(".allocation");
+        var allocation = allocationElement.data("allocation");
+        if (allocation != null && confirm("Are you sure want to delete this allocation")) {
+            $.ajax({
+                url: '/api/allocationsData',
+                method: 'DELETE',
+                dataType: 'json',
+                contentType: "application/json",
+                data: JSON.stringify({"socketId": socketId, "data": JSON.parse(atob(allocation))}),
+                success: function () {
+                    allocationElement.remove();
+                },
+                error: function (xhr, status, error) {
+                    alert(error.message)
+                }
+            });
         }
     }
 </script>

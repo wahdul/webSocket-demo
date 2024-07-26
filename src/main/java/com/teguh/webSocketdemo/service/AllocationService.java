@@ -10,4 +10,6 @@ public interface AllocationService {
     Map<String, Object> getAllocationData(LocalDate fromDate, LocalDate toDate);
 
     void saveAllocation(List<Allocation> allocation);
+
+    void deleteAllocation(Allocation allocation);
 }
