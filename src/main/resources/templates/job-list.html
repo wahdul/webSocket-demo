@@ -26,29 +26,36 @@
             margin-top: 50px;
             margin-bottom: 30px;
         }
+
         .box-container {
             border: 1px solid #ccc;
             margin-bottom: 15px;
         }
+
         .box-header {
             padding: 10px;
             cursor: pointer;
             background-color: #f0f0f0;
             border-bottom: 1px solid #ccc;
         }
+
         .box-body {
             padding: 10px;
         }
+
         .btn-add-record {
             margin-bottom: 20px;
         }
+
         .collapse-text {
             text-align: right;
         }
+
         .worker-cell {
             min-height: 50px;
             position: relative;
         }
+
         .job {
             background-color: #f9f9f9;
             padding: 5px;
@@ -57,6 +64,7 @@
             z-index: 9999;
             min-height: 50px;
         }
+
         .allocation {
             cursor: move;
             min-height: 50px;
@@ -69,24 +77,43 @@
             position: relative;
             transition: background-color 0.3s, box-shadow 0.3s;
         }
-        .delete-icon {
-            color: red;
-            font-size: 25px;
-            cursor: hand;
-        }
+
         .allocation:hover {
             background-color: #eaeaea;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
+
         .allocation div {
             margin-bottom: 10px;
         }
+
         .delete-icon {
             cursor: pointer;
+            font-size: 25px;
             color: #dc3545;
         }
+
         .delete-icon:hover {
             color: #c82333;
+        }
+
+        .collapse-content {
+            display: none; /* Hide content by default */
+        }
+
+        .expanded .collapse-content {
+            display: block; /* Show content when expanded */
+        }
+
+        .expand-collapse-icon {
+            cursor: pointer;
+            transition: transform 0.3s;
+            font-size: 25px;
+            color: #c4c4c4;
+        }
+
+        .expanded .expand-collapse-icon {
+            transform: rotate(180deg); /* Rotate icon when expanded */
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyApg-WC0f4YH1B3m1BG4HEPwlke287Hl6s&libraries=places"></script>
@@ -110,7 +137,8 @@
         <div id="collapseExample" class="collapse show">
             <div class="box-body">
                 <h1>Welcome to Transport Management System</h1>
-                <p>This web application allows collaborative data entry and inline editing of tables. You can easily add, edit, and
+                <p>This web application allows collaborative data entry and inline editing of tables. You can easily
+                    add, edit, and
                     delete records in the table.</p>
 
                 <h2>Features:</h2>
@@ -128,13 +156,24 @@
                     <li>Click on the "Add Record" button to add a new record.</li>
                     <li>To edit an existing record, simply click on the cell you want to edit and make changes.</li>
                     <li>Use the arrow keys to navigate vertically or horizontally through table cells.</li>
-                    <li>When a cell with a select dropdown or datepicker is selected, press the space key to open the dropdown and use arrow keys to navigate options. Press the 'Enter' key to select an option.</li>
-                    <li>In a cell with an address autocomplete selected, begin typing the address. As you type, a dropdown list of suggested addresses will appear. Use the arrow keys to navigate through the options. Press the 'Enter' key to select an address option. If needed, confirm the selection before proceeding.</li>
-                    <li>Navigate away from the cell or click outside it to save changes. Alternatively, press the 'Esc' key to
+                    <li>When a cell with a select dropdown or datepicker is selected, press the space key to open the
+                        dropdown and use arrow keys to navigate options. Press the 'Enter' key to select an option.
+                    </li>
+                    <li>In a cell with an address autocomplete selected, begin typing the address. As you type, a
+                        dropdown list of suggested addresses will appear. Use the arrow keys to navigate through the
+                        options. Press the 'Enter' key to select an address option. If needed, confirm the selection
+                        before proceeding.
+                    </li>
+                    <li>Navigate away from the cell or click outside it to save changes. Alternatively, press the 'Esc'
+                        key to
                         discard changes.
                     </li>
                     <li>To delete a record, click on the "Delete" button in the corresponding row.</li>
-                    <li>You can easily assign a job to a worker, switch jobs between workers on different days, or arrange the priority of workers within a single day by clicking and dragging them. Simply click on the job reference number you want to move, hold down your mouse button, and drag it to the job schedule table. Release the mouse button to drop the job into place.</li>
+                    <li>You can easily assign a job to a worker, switch jobs between workers on different days, or
+                        arrange the priority of workers within a single day by clicking and dragging them. Simply click
+                        on the job reference number you want to move, hold down your mouse button, and drag it to the
+                        job schedule table. Release the mouse button to drop the job into place.
+                    </li>
                 </ol>
             </div>
         </div>
@@ -144,16 +183,13 @@
     <table id="myTable" class="table table-bordered">
         <thead>
         <tr>
-            <th></th>
             <th>Transport Type</th>
             <th>Client</th>
             <th>Reference #</th>
-<!--            <th>Date</th>-->
             <th style="width:25%">Pick-up Address</th>
             <th style="width:25%">Drop-off Address</th>
             <th style="width:7%;align-content: center">QTY</th>
             <th style="width:7%">Units</th>
-<!--            <th>Worker</th>-->
             <th>Status</th>
             <th>Action</th>
         </tr>
@@ -233,10 +269,9 @@
             ajax: {url: url, dataSrc: "data"},
             processing: true,
             serverSide: true,
-            order: [ [0, 'asc'] ],
+            order: [8, 'desc'],
             autoWidth: true, // Set auto width
             columns: [
-                {data: "orderNumber", defaultContent: 0, visible: false},
                 {
                     data: "transportType", defaultContent: "", className: 'transport-type-select',
                     render: function (data) {
@@ -247,14 +282,6 @@
                 },
                 {data: "clientCode", defaultContent: "", className: 'text'},
                 {data: "referenceNo", defaultContent: "", className: 'text job'},
-                // {
-                //     data: "date", defaultContent: "", className: 'date',
-                //     render: function (data) {
-                //         if (!data) return null;
-                //         // Assuming data is in "yyyy-mm-dd" format
-                //         return moment(data).format('DD/MM/YYYY');
-                //     }
-                // },
                 {data: "pickupAddress", defaultContent: "", className: 'address'},
                 {data: "dropOffAddress", defaultContent: "", className: 'address'},
                 {data: "qty", defaultContent: "", className: 'number'},
@@ -266,16 +293,6 @@
                         }
                     }
                 },
-                // {
-                //     data: "worker",
-                //     defaultContent: "",
-                //     className: 'worker-select',
-                //     render: function (data) {
-                //         if (data !== undefined && data !== null) {
-                //             return data.name;
-                //         }
-                //     }
-                // },
                 {
                     data: "status", defaultContent: "", className: 'status-select',
                     render: function (data) {
@@ -292,7 +309,7 @@
                 }
             ],
             lengthMenu: [10, 25, 50, 100],
-            createdRow: function(row, data, dataIndex) {
+            createdRow: function (row, data, dataIndex) {
                 var job = btoa(JSON.stringify(data))
 
                 // Adding data-job to the second cell (index 1) in each row
@@ -300,7 +317,7 @@
             }
         });
 
-        jobTable.on('draw', function() {
+        jobTable.on('draw', function () {
             initializeUIFeatures();
         });
 
@@ -343,7 +360,7 @@
             jobTable.ajax.url(newDataUrl).load(callback);
         });
 
-        function callback(){
+        function callback() {
             $('#myTable tbody tr:first td:first').trigger('click');
             initializeUIFeatures();
         }
@@ -648,7 +665,7 @@
         $.ajax({
             type: 'GET',
             url: '/api/allocations',
-            success: function(d) {
+            success: function (d) {
                 if (allocationJob == null) {
                     allocationJob = $('#allocationTable').DataTable({
                         data: d.data,
@@ -672,10 +689,10 @@
                         columnDefs: [
                             {
                                 targets: '_all', // Target all columns
-                                render: function(data, type, row, meta) {
+                                render: function (data, type, row, meta) {
                                     if (data instanceof Array) {
                                         var html = '';
-                                        data.forEach(function(item) {
+                                        data.forEach(function (item) {
                                             html += createAllocationElement(item);
                                         });
                                         return html;
@@ -700,7 +717,7 @@
         // Make jobs draggable (after DataTables initialization)
         $('.job').draggable({
             revert: 'invalid',
-            helper: function(event) {
+            helper: function (event) {
                 var originalElement = $(this);
                 var helperElement = originalElement.clone();
                 helperElement.addClass('from-job-table');
@@ -711,11 +728,11 @@
         // // Make worker cells droppable
         $('.worker-cell').droppable({
             // accept: '.job',
-            accept: function(draggable) {
+            accept: function (draggable) {
                 var draggableJobId = $(draggable).data('job-id');
                 return !$(this).find('.allocation[data-job-id="' + draggableJobId + '"]').length;
             },
-            drop: function(event, ui) {
+            drop: function (event, ui) {
                 var this_ = $(this);
                 var job;
                 var jobData = ui.helper.data('job');
@@ -738,7 +755,7 @@
 
                     saveAllocations(this_, worker, date);
                 } else {
-                    alert('Job already allocated for this worker.');
+                    console.log('Job already allocated for this worker.');
                 }
             }
         });
@@ -758,7 +775,7 @@
     }
 
     function reloadDataAndReinitialize() {
-        jobTable.ajax.url(url).load(function() {
+        jobTable.ajax.url(url).load(function () {
             // Callback function after data reload is complete
             initializeUIFeatures(); // Reinitialize UI features after DataTable reload
         });
@@ -785,7 +802,7 @@
             data: JSON.stringify({"socketId": socketId, "dataList": allocations}),
             success: function (data) {
                 this_.empty();
-                data.forEach(function(item) {
+                data.forEach(function (item) {
                     this_.append(createAllocationElement(item));
                 });
                 this_.sortable("enable");
@@ -803,23 +820,28 @@
         var transportType = job?.transportType?.label ?? '';
         var clientCode = job?.clientCode ?? '';
         var status = job?.status?.label ?? '';
-        var html = '<div class="container">\n' +
+        var html = '<div class="container mt-4">\n' +
             '    <div class="allocation ui-sortable-handle" data-job-id="{jobId}" data-allocation="{allocation}">\n' +
             '      <div class="d-flex justify-content-between align-items-center">\n' +
-            '        <span>{jobRef}</span>\n' +
-            '        <i class="fas fa-solid fa-square-xmark delete-icon" onclick="deleteAllocation(this)"></i>\n' +
+            '        <span><b>{jobRef}</b></span>\n' +
+            '        <span>\n' +
+            '           <i class="fas fa-chevron-down expand-collapse-icon mr-md-2" onclick="toggleCollapse(this)"></i>\n' +
+            '           <i class="fas fa-solid fa-square-xmark delete-icon" onclick="deleteAllocation(this)"></i>\n' +
+            '        </span>\n' +
             '      </div>\n' +
-            '      <div>{transportType}</div>\n' +
-            '      <div>{clientCode}</div>\n' +
-            '      <div>{status}</div>\n' +
+            '      <div class="collapse-content">\n' +
+            '        <div>{transportType}</div>\n' +
+            '        <div>{clientCode}</div>\n' +
+            '        <div>{status}</div>\n' +
+            '      </div>\n' +
             '    </div>\n' +
             '  </div>';
         return html.replace('{jobId}', jobId)
-                .replace('{allocation}', btoa(JSON.stringify(allocation)))
-                .replace('{jobRef}', (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef))
-                .replace('{transportType}', transportType)
-                .replace('{clientCode}', clientCode)
-                .replace('{status}', status);
+            .replace('{allocation}', btoa(JSON.stringify(allocation)))
+            .replace('{jobRef}', (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef))
+            .replace('{transportType}', transportType)
+            .replace('{clientCode}', clientCode)
+            .replace('{status}', status);
     }
 
     function handleSortAndReceive(event, ui) {
@@ -831,10 +853,9 @@
         var jobRef = allocation.job.referenceNo;
         var worker = JSON.parse(atob(this_.data('worker')));
         var date = this_.data('date');
-        console.log(this_.find('.allocation[data-job-id="' + jobId + '"]').length);
         if (this_.find('.allocation[data-job-id="' + jobId + '"]').length > 1) {
             // Revert sorting
-            ui.sender.sortable( "cancel" );
+            ui.sender.sortable("cancel");
             alert('Job ' + (jobRef == null ? 'Job Id: ' + jobId : 'Ref#: ' + jobRef) + ' already allocated for this worker.');
         } else {
             saveAllocations(this_, worker, date);
@@ -859,6 +880,12 @@
                 }
             });
         }
+    }
+
+    function toggleCollapse(icon) {
+        // Toggle the expanded class on the parent element
+        var parent = $(icon).closest('.allocation');
+        parent.toggleClass('expanded');
     }
 </script>
 </body>

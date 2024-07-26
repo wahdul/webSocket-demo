@@ -79,9 +79,9 @@ public class JobAllocationController {
     @GetMapping("/api/jobData")
     @ResponseBody
     public DataTableResponseDTO<Job> getAllJob(@RequestParam int draw,
-                               @RequestParam int start,
-                               @RequestParam int length,
-                               @RequestParam Map<String, String> queryMap) {
+                                               @RequestParam int start,
+                                               @RequestParam int length,
+                                               @RequestParam Map<String, String> queryMap) {
         String searchValue = queryMap.get("search[value]");
 
         // Calculate page number
@@ -92,6 +92,16 @@ public class JobAllocationController {
 
         if (queryMap.containsKey("order[0][column]") && queryMap.containsKey("order[0][dir]")) {
             String sortBy = queryMap.get("columns[" + queryMap.get("order[0][column]") + "][data]");
+            if ("unit".equals(sortBy)) {
+                sortBy = "unit.label";
+            }
+            if ("transportType".equals(sortBy)) {
+                sortBy = "transportType.label";
+            }
+            if ("status".equals(sortBy)) {
+                sortBy = "status.label";
+            }
+
             String sortDir = queryMap.get("order[0][dir]");
 
             Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
@@ -121,9 +131,9 @@ public class JobAllocationController {
     @GetMapping("/api/jobData/newData")
     @ResponseBody
     public DataTableResponseDTO<Job> getAllJobWithNewData(@RequestParam int draw,
-                               @RequestParam int start,
-                               @RequestParam int length,
-                               @RequestParam Map<String, String> queryMap) {
+                                                          @RequestParam int start,
+                                                          @RequestParam int length,
+                                                          @RequestParam Map<String, String> queryMap) {
         DataTableResponseDTO<Job> jobDataTableResponseDTO = getAllJob(draw, start, length, queryMap);
 
         List<Job> jobList = new ArrayList<>();
@@ -199,7 +209,7 @@ public class JobAllocationController {
     @ResponseBody
     public List<Allocation> saveAllocation(@RequestBody RequestDTO requestDTO) {
         List<Allocation> allocationList = new ArrayList<>();
-        for(Object obj : requestDTO.getDataList()) {
+        for (Object obj : requestDTO.getDataList()) {
             allocationList.add(modelMapper.map(obj, Allocation.class));
         }
         allocationService.saveAllocation(allocationList);
