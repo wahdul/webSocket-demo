@@ -32,6 +32,17 @@ public class Job {
     @ManyToOne(fetch = FetchType.EAGER)
     private Worker worker;
 
+    public Job(String searchValue) {
+        setClientCode(searchValue);
+        setReferenceNo(searchValue);
+        setPickupAddress(searchValue);
+        setDropOffAddress(searchValue);
+    }
+
+    public Job() {
+
+    }
+
     public Long getId() {
         return id;
     }

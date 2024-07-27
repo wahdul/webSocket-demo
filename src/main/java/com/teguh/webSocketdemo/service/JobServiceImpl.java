@@ -3,6 +3,8 @@ package com.teguh.webSocketdemo.service;
 import com.teguh.webSocketdemo.persistance.model.Job;
 import com.teguh.webSocketdemo.persistance.repo.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -36,7 +38,17 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Page<Job> findBySearchTerm(String searchValue, Pageable pageable) {
-        return jobRepository.findByClientCodeContainingIgnoreCaseOrReferenceNoContainingIgnoreCaseOrPickupAddressContainingIgnoreCaseOrDropOffAddressContainingIgnoreCaseAndDeletedIsNull(searchValue, searchValue, searchValue, searchValue, pageable);
+        Job probe = new Job(searchValue);
+
+        // Create an ExampleMatcher to specify matching conditions
+        ExampleMatcher matcher = ExampleMatcher.matchingAny()
+                .withIgnoreCase()                // Ignore case for string fields
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING); // Partial match for strings
+
+        // Create an Example instance
+        Example<Job> example = Example.of(probe, matcher);
+
+        return jobRepository.findAll(example, pageable);
     }
 
     @Override
