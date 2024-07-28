@@ -9,6 +9,14 @@ public class TransportType {
     private Long id;
     private String label;
 
+    public TransportType(Long valueOf) {
+        this.id = valueOf;
+    }
+
+    public TransportType() {
+
+    }
+
     public Long getId() {
         return id;
     }

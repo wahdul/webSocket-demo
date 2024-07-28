@@ -59,6 +59,13 @@ public class Job {
         this.transportType = transportType;
     }
 
+    public void setTransportType(String id) {
+        try {
+            this.transportType = new TransportType(Long.valueOf(id));
+        } catch (NumberFormatException ignored) {
+        }
+    }
+
     public String getClientCode() {
         return clientCode;
     }
@@ -115,12 +122,26 @@ public class Job {
         this.unit = unit;
     }
 
+    public void setUnit(String id) {
+        try {
+            this.unit = new Unit(Long.valueOf(id));
+        } catch (NumberFormatException ignored) {
+        }
+    }
+
     public Status getStatus() {
         return status;
     }
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public void setStatus(String id) {
+        try {
+            this.status = new Status(Long.valueOf(id));
+        } catch (NumberFormatException ignored) {
+        }
     }
 
     public Integer getOrderNumber() {

@@ -115,6 +115,13 @@
         .expanded .expand-collapse-icon {
             transform: rotate(180deg); /* Rotate icon when expanded */
         }
+
+        #myTable thead input {
+            width: 100%;
+            padding: 6px 12px;
+            box-sizing: border-box;
+            border-radius: 5px;
+        }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyApg-WC0f4YH1B3m1BG4HEPwlke287Hl6s&libraries=places"></script>
 </head>
@@ -315,6 +322,68 @@
                 // Adding data-job to the second cell (index 1) in each row
                 $(row).find('td').attr('data-job', job);
             }
+        });
+
+        // Append input elements to header cells
+        $('#myTable thead tr').clone(true).appendTo('#myTable thead');
+        $('#myTable thead tr:eq(1) th').each(function (i) {
+            $(this).off('click');
+            var title = $(this).text();
+            var input;
+
+            //Get Class names
+            var classNames = $(this).attr('class');
+            if (classNames.includes("transport-type-select") || classNames.includes("unit-select") || classNames.includes("status-select")) {
+                var url;
+
+                if (classNames.includes("transport-type-select")) {
+                    url = '/api/transportTypes';
+                } else if (classNames.includes("unit-select")) {
+                    url = '/api/units';
+                } else if (classNames.includes("status-select")) {
+                    url = '/api/statuses';
+                }
+
+                // Fetch workers list from API
+                $.ajax({
+                    url: url,
+                    async: false,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        // Create a select element
+                        input = $('<select class="form-control" name="' + title + '">');
+                        if (data.length === 0) return;
+                        //
+                        input.append($('<option>'));
+
+                        // Populate select element with workers
+                        data.forEach(function (data) {
+                            input.append($('<option>', {
+                                value: data.id,
+                                text: data.label,
+                            }));
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching option:', error);
+                    }
+                });
+            } else {
+                input = '<input type="text" placeholder="Search ' + title + '" />'
+            }
+
+            $(this).html(input);
+
+            // Apply the search functionality
+            $('input, select', this).on('keyup change', function () {
+                if (jobTable.column(i).search() !== this.value) {
+                    jobTable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
         });
 
         jobTable.on('draw', function () {

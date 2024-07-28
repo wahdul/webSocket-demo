@@ -82,41 +82,7 @@ public class JobAllocationController {
                                                @RequestParam int start,
                                                @RequestParam int length,
                                                @RequestParam Map<String, String> queryMap) {
-        String searchValue = queryMap.get("search[value]");
-
-        // Calculate page number
-        int pageNumber = start / length;
-
-        // Create Pageable instance for pagination and sorting
-        Pageable pageable = PageRequest.of(pageNumber, length);
-
-        if (queryMap.containsKey("order[0][column]") && queryMap.containsKey("order[0][dir]")) {
-            String sortBy = queryMap.get("columns[" + queryMap.get("order[0][column]") + "][data]");
-            if ("unit".equals(sortBy)) {
-                sortBy = "unit.label";
-            }
-            if ("transportType".equals(sortBy)) {
-                sortBy = "transportType.label";
-            }
-            if ("status".equals(sortBy)) {
-                sortBy = "status.label";
-            }
-
-            String sortDir = queryMap.get("order[0][dir]");
-
-            Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
-
-            // Create Pageable instance for pagination and sorting
-            pageable = PageRequest.of(pageNumber, length, sort);
-        }
-
-        // Fetch data from database
-        Page<Job> jobPage;
-        if (!searchValue.isEmpty()) {
-            jobPage = jobService.findBySearchTerm(searchValue, pageable);
-        } else {
-            jobPage = jobService.getAllJob(pageable);
-        }
+        Page<Job> jobPage = jobService.findData(start, length, queryMap);
 
         // Prepare response
         DataTableResponseDTO<Job> dtResponse = new DataTableResponseDTO<>();
