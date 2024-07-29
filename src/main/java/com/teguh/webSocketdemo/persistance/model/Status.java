@@ -9,14 +9,6 @@ public class Status {
     private Long id;
     private String label;
 
-    public Status(Long valueOf) {
-        this.id = valueOf;
-    }
-
-    public Status() {
-
-    }
-
     public Long getId() {
         return id;
     }

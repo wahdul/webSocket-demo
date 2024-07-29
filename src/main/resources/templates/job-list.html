@@ -309,7 +309,7 @@
                     }
                 },
                 {
-                    data: "id", render: function () {
+                    data: "id", className: 'action', render: function () {
                         // $(td).html("<button type='button' class='btn-edit btn btn-warning mr-md-1'>Edit</button><button type='button' class='btn-delete btn btn-danger'>Delete</button>");
                         return "<button type='button' class='btn-delete btn btn-danger'>Delete</button>";
                     }
@@ -327,13 +327,16 @@
         // Append input elements to header cells
         $('#myTable thead tr').clone(true).appendTo('#myTable thead');
         $('#myTable thead tr:eq(1) th').each(function (i) {
-            $(this).off('click');
-            var title = $(this).text();
+            var this_ = $(this);
+            this_.off('click');
+            var title = this_.text();
             var input;
 
             //Get Class names
-            var classNames = $(this).attr('class');
-            if (classNames.includes("transport-type-select") || classNames.includes("unit-select") || classNames.includes("status-select")) {
+            var classNames = this_.attr('class');
+            if (classNames.includes("action")) {
+                input = '';
+            } else if (classNames.includes("transport-type-select") || classNames.includes("unit-select") || classNames.includes("status-select")) {
                 var url;
 
                 if (classNames.includes("transport-type-select")) {
@@ -352,10 +355,10 @@
                     dataType: 'json',
                     success: function (data) {
                         // Create a select element
-                        input = $('<select class="form-control" name="' + title + '">');
+                        input = $('<select class="form-control">');
                         if (data.length === 0) return;
                         //
-                        input.append($('<option>'));
+                        input.append($('<option>Search ' + title + '</option>'));
 
                         // Populate select element with workers
                         data.forEach(function (data) {
@@ -373,7 +376,7 @@
                 input = '<input type="text" placeholder="Search ' + title + '" />'
             }
 
-            $(this).html(input);
+            this_.html(input);
 
             // Apply the search functionality
             $('input, select', this).on('keyup change', function () {

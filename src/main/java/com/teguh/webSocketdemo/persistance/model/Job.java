@@ -61,7 +61,9 @@ public class Job {
 
     public void setTransportType(String id) {
         try {
-            this.transportType = new TransportType(Long.valueOf(id));
+            Long valueOf = Long.valueOf(id);
+            this.transportType = new TransportType();
+            this.transportType.setId(valueOf);
         } catch (NumberFormatException ignored) {
         }
     }
@@ -124,7 +126,9 @@ public class Job {
 
     public void setUnit(String id) {
         try {
-            this.unit = new Unit(Long.valueOf(id));
+            Long valueOf = Long.valueOf(id);
+            this.unit = new Unit();
+            this.unit.setId(valueOf);
         } catch (NumberFormatException ignored) {
         }
     }
@@ -139,7 +143,9 @@ public class Job {
 
     public void setStatus(String id) {
         try {
-            this.status = new Status(Long.valueOf(id));
+            Long valueOf = Long.valueOf(id);
+            this.status = new Status();
+            this.status.setId(valueOf);
         } catch (NumberFormatException ignored) {
         }
     }

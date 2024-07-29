@@ -9,14 +9,6 @@ public class Unit {
     private Long id;
     private String label;
 
-    public Unit(Long valueOf) {
-        this.id = valueOf;
-    }
-
-    public Unit() {
-
-    }
-
     public Long getId() {
         return id;
     }
